@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import HomePage from "./pages/home/HomePage";
-import AuthPage from "./pages/auth/AuthPageTemp";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 import CourseListPage from "./pages/courselist/CourseListPage";
 import PaymentPage from "./pages/courselist/PaymentPage";
 import PracticePage from "./pages/practice/PracticePage";
@@ -16,7 +17,8 @@ function App() {
       <Routes>
         {/* ── NHÓM 1: CÁC TRANG TRÀN MÀN HÌNH (Không Header/Footer) ── */}
         {/* Ưu tiên đặt các trang này lên đầu để tránh bị lọt vào Layout chung */}
-        <Route path="/login" element={<AuthPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/practice/calculus-1" element={<PracticePlayerPage />} />
 
         {/* ── NHÓM 2: CÁC TRANG CÓ HEADER & FOOTER (Dùng MainLayout) ── */}

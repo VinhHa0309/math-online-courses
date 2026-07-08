@@ -1,6 +1,7 @@
-import { Search, Bell, Menu, X, BookOpen } from "lucide-react";
+import { Search, Bell, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom"; // Thêm useLocation để theo dõi URL
+import { Link, useLocation } from "react-router-dom";
+import BrandLogo from "../common/BrandLogo";
 
 const NAV_LINKS = [
   { label: "Khoá học", path: "/courses" },
@@ -25,14 +26,8 @@ export default function Header() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#F2EDE6]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center gap-6">
           {/* ── Logo ── */}
-          <Link
-            to="/"
-            className="hdr-logo text-xl font-black text-[#1A2B47] tracking-tight shrink-0 flex items-center gap-2"
-          >
-            <span className="w-7 h-7 rounded-lg bg-[#F08A4B] flex items-center justify-center shadow-md">
-              <BookOpen className="w-4 h-4 text-white" strokeWidth={2.5} />
-            </span>
-            Mathematiq
+          <Link to="/" className="shrink-0 flex items-center">
+            <BrandLogo size="xs" dark={false} showText={true} textColor="#1A2B47" />
           </Link>
 
           {/* ── Nav (Desktop) ── */}

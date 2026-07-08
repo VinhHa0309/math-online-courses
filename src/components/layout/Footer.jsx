@@ -3,120 +3,93 @@ const Footer = () => {
     <footer className="w-full border-t border-gray-100 bg-white mt-12 md:mt-16 lg:mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-8 md:py-10 lg:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8 md:mb-10">
-          {/* Company Info */}
+          {/* Thông tin công ty */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#1A2B47] text-sm md:text-base">
               Mathematiq
             </h4>
             <p className="text-gray-500 text-xs md:text-sm leading-relaxed">
-              Master mathematics through immersive learning experiences.
+              Làm chủ toán học qua trải nghiệm học tập chuyên sâu và sinh động.
             </p>
           </div>
 
-          {/* Product Links */}
+          {/* Liên kết sản phẩm */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#1A2B47] text-xs md:text-sm uppercase tracking-wider">
-              Product
+              Sản phẩm
             </h4>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Courses
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Khoá học
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Practice
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Luyện tập
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Premium
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Gói cao cấp
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Resources Links */}
+          {/* Tài nguyên */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#1A2B47] text-xs md:text-sm uppercase tracking-wider">
-              Resources
+              Tài nguyên
             </h4>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
                   Blog
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Docs
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Tài liệu
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Support
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Hỗ trợ
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Pháp lý */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#1A2B47] text-xs md:text-sm uppercase tracking-wider">
-              Legal
+              Pháp lý
             </h4>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Privacy
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Quyền riêng tư
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Terms
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Điều khoản
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors"
-                >
-                  Contact
+                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                  Liên hệ
                 </a>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Divider */}
+        {/* Đường phân cách dưới */}
         <div className="border-t border-gray-100 pt-6 md:pt-8">
           <p className="text-gray-400 text-xs md:text-sm text-center">
-            © 2024 Mathematiq. All rights reserved.
+            © 2024 Mathematiq. Bản quyền thuộc về Mathematiq.
           </p>
         </div>
       </div>
