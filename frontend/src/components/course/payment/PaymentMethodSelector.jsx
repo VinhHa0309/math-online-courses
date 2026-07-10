@@ -98,6 +98,31 @@ function CardForm() {
   );
 }
 
+// ── Logos của các ví điện tử ────────────────────────────────
+const WALLET_LOGOS = {
+  MoMo: (
+    <div className="w-7 h-7 rounded-lg bg-[#A50064] flex items-center justify-center shrink-0 shadow-sm">
+      <span className="text-[10px] text-white font-extrabold tracking-tighter">momo</span>
+    </div>
+  ),
+  ZaloPay: (
+    <div className="w-7 h-7 rounded-lg bg-[#008FE5] flex items-center justify-center shrink-0 shadow-sm relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-tr from-[#008FE5] to-[#00b46e] opacity-90" />
+      <span className="text-[9px] text-white font-black tracking-tighter relative z-10">Zalo</span>
+    </div>
+  ),
+  VNPay: (
+    <div className="w-7 h-7 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+      <span className="text-[8px] font-black tracking-tighter text-[#0054A5]">VN<span className="text-[#ED1C24]">PAY</span></span>
+    </div>
+  ),
+  ShopeePay: (
+    <div className="w-7 h-7 rounded-lg bg-[#EE4D2D] flex items-center justify-center shrink-0 shadow-sm">
+      <span className="text-[8px] text-white font-black tracking-tighter">SPay</span>
+    </div>
+  )
+};
+
 // ── Form ví điện tử ───────────────────────────────────────
 function WalletForm() {
   const wallets = ["MoMo", "ZaloPay", "VNPay", "ShopeePay"];
@@ -113,13 +138,14 @@ function WalletForm() {
           <button
             key={w}
             onClick={() => setSelected(w)}
-            className={`py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
+            className={`py-2.5 px-4 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 flex items-center gap-3 ${
               selected === w
                 ? "border-orange-400 bg-orange-50 text-[#1A2B47]"
-                : "border-slate-100 text-slate-400 hover:border-slate-200"
+                : "border-slate-100 text-slate-400 bg-white hover:border-slate-200 hover:text-slate-600"
             }`}
           >
-            {w}
+            {WALLET_LOGOS[w]}
+            <span className="font-outfit">{w}</span>
           </button>
         ))}
       </div>

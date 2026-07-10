@@ -55,7 +55,7 @@ export default function PaymentPage() {
   const handleConfirm = () => setShowSuccess(true);
   const handleClose = () => {
     setShowSuccess(false);
-    navigate("/courses");
+    navigate("/courses/learn");
   };
 
   return (

@@ -10,6 +10,7 @@ import PracticePlayerPage from "./pages/practice-player/PracticePlayerPage";
 import DocumentPage from "./pages/document/DocumentPage";
 import DocumentDetailPage from "./pages/document/DocumentDetailPage";
 import NewsPage from "./pages/news/NewsPage";
+import CoursePlayerPage from "./pages/course-player/CoursePlayerPage";
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/practice/calculus-1" element={<PracticePlayerPage />} />
+        <Route path="/courses/:id/learn" element={<CoursePlayerPage />} />
+        <Route path="/courses/learn" element={<CoursePlayerPage />} />
 
         {/* ── NHÓM 2: CÁC TRANG CÓ HEADER & FOOTER (Dùng MainLayout) ── */}
         <Route

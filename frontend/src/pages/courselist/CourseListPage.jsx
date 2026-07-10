@@ -8,6 +8,7 @@ import { courses } from "../../data/courses";
 export default function CourseListPage() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" hoặc "list"
 
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 min-h-screen bg-white">
@@ -41,11 +42,25 @@ export default function CourseListPage() {
               </button>
 
               {/* Nút chuyển đổi View Grid/List */}
-              <div className="hidden sm:flex bg-slate-50 p-1 rounded-xl border border-slate-100">
-                <button className="p-2 bg-white shadow-sm rounded-lg text-[#F08A4B] transition-all">
+              <div className="hidden sm:flex bg-[#F8FAFC] p-1 rounded-xl border border-slate-100">
+                <button 
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 transition-all rounded-lg ${
+                    viewMode === "grid" 
+                      ? "bg-white shadow-sm text-[#F08A4B]" 
+                      : "text-slate-400 hover:text-[#1A2B47]"
+                  }`}
+                >
                   <LayoutGrid size={18} />
                 </button>
-                <button className="p-2 text-slate-400 hover:text-slate-600 transition-all">
+                <button 
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 transition-all rounded-lg ${
+                    viewMode === "list" 
+                      ? "bg-white shadow-sm text-[#F08A4B]" 
+                      : "text-slate-400 hover:text-[#1A2B47]"
+                  }`}
+                >
                   <List size={18} />
                 </button>
               </div>
@@ -60,10 +75,12 @@ export default function CourseListPage() {
             </div>
           </div>
 
-          {/* ── Danh sách Thẻ khóa học (Grid) ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {/* ── Danh sách Thẻ khóa học (Grid / List) ── */}
+          <div className={`grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 ${
+            viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+          }`}>
             {courses.map((course, index) => (
-              <CourseCard key={index} {...course} />
+              <CourseCard key={index} {...course} viewMode={viewMode} />
             ))}
           </div>
 

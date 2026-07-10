@@ -10,9 +10,37 @@ const NAV_LINKS = [
   { label: "Tin tức", path: "/news" },
 ];
 
+const MOCK_NOTIFICATIONS = [
+  {
+    id: 1,
+    title: "Mở khóa bài học mới! 🎉",
+    description: "Bạn đã đủ điều kiện học 'Bài 2: Hàm số bậc hai và Parabol'.",
+    time: "5m trước",
+    isRead: false,
+    type: "success"
+  },
+  {
+    id: 2,
+    title: "Tài liệu mới được cập nhật 📚",
+    description: "Tài liệu 'Bài tập rèn luyện hàm số bậc nhất' vừa được tải lên.",
+    time: "1h trước",
+    isRead: false,
+    type: "info"
+  },
+  {
+    id: 3,
+    title: "Ưu đãi giới hạn ⚡",
+    description: "Khóa học 'Thống kê và Xác suất' đang giảm giá 15% hôm nay.",
+    time: "1d trước",
+    isRead: true,
+    type: "promo"
+  }
+];
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const location = useLocation(); // Lấy thông tin đường dẫn hiện tại
 
   return (
@@ -67,10 +95,75 @@ export default function Header() {
             </div>
 
             {/* Bell Icon */}
-            <button className="hidden sm:flex relative items-center justify-center w-9 h-9 rounded-xl text-[#6B7A90] hover:bg-[#F8FAFC] hover:text-[#1A2B47] border border-transparent hover:border-[#F2EDE6] transition-all">
-              <Bell className="w-[18px] h-[18px]" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F08A4B] ring-2 ring-white" />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className={`hidden sm:flex relative items-center justify-center w-9 h-9 rounded-xl text-[#6B7A90] hover:bg-[#F8FAFC] hover:text-[#1A2B47] border transition-all ${
+                  isNotifOpen ? "bg-[#F8FAFC] border-[#F2EDE6] text-[#1A2B47]" : "border-transparent"
+                }`}
+              >
+                <Bell className="w-[18px] h-[18px]" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F08A4B] ring-2 ring-white" />
+              </button>
+
+              {/* Hộp thoại thông báo thả xuống (Dropdown giống Facebook) */}
+              {isNotifOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-white border border-[#F2EDE6] rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Header */}
+                  <div className="p-4 border-b border-[#F2EDE6] flex items-center justify-between">
+                    <span className="font-outfit font-bold text-sm text-[#1A2B47]">Thông báo</span>
+                    <button className="text-xs text-[#F08A4B] font-semibold hover:underline">
+                      Đọc tất cả
+                    </button>
+                  </div>
+
+                  {/* Danh sách thông báo */}
+                  <div className="max-h-72 overflow-y-auto divide-y divide-[#F8FAFC]">
+                    {MOCK_NOTIFICATIONS.map((n) => (
+                      <div 
+                        key={n.id} 
+                        className={`p-4 hover:bg-[#F8FAFC] transition-colors flex gap-3 ${
+                          !n.isRead ? "bg-[#FFFDFB]/80" : ""
+                        }`}
+                      >
+                        {/* Trạng thái chấm màu */}
+                        <div className="mt-1.5 shrink-0">
+                          <span className={`block w-2.5 h-2.5 rounded-full ${
+                            n.type === "success" 
+                              ? "bg-emerald-500" 
+                              : n.type === "info" 
+                              ? "bg-blue-500" 
+                              : "bg-orange-500"
+                          }`} />
+                        </div>
+
+                        {/* Nội dung */}
+                        <div className="space-y-1 flex-1">
+                          <div className="flex justify-between items-start gap-1">
+                            <h4 className="text-xs font-bold text-[#1A2B47] leading-snug">
+                              {n.title}
+                            </h4>
+                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                              {n.time}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-normal font-dmsans">
+                            {n.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-3 bg-[#F8FAFC] text-center border-t border-[#F2EDE6]">
+                    <button className="text-xs font-semibold text-[#1A2B47] hover:text-[#F08A4B] transition-colors">
+                      Xem tất cả thông báo
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Nút Đăng nhập */}
             <Link
