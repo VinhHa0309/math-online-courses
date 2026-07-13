@@ -8,6 +8,70 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // State quản lý dữ liệu form
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Hàm xử lý khi nhấn Đăng ký
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // 1. Kiểm tra mật khẩu khớp nhau
+    if (password !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    // 2. Kiểm tra độ dài mật khẩu
+    if (password.length < 6) {
+      setError("Mật khẩu phải chứa ít nhất 6 ký tự!");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:8085/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fullName, email, password }),
+      });
+
+      const data = await response.text();
+
+      if (!response.ok) {
+        throw new Error(data || "Đăng ký thất bại. Vui lòng kiểm tra lại!");
+      }
+
+      const result = JSON.parse(data);
+
+      // Lưu token đăng nhập tự động sau khi đăng ký thành công
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify({
+        id: result.id,
+        fullName: result.fullName,
+        email: result.email,
+        role: result.role
+      }));
+
+      alert("Đăng ký tài khoản thành công!");
+      navigate("/");
+      window.location.reload(); // Reload để cập nhật trạng thái đăng nhập trên Header
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthLayout>
       <div className="flex flex-col h-full px-10 py-7 justify-between">
@@ -24,7 +88,7 @@ export default function RegisterPage() {
         </button>
 
         {/* Middle: Form */}
-        <div className="w-full max-w-[380px] mx-auto flex flex-col gap-4">
+        <form onSubmit={handleRegister} className="w-full max-w-[380px] mx-auto flex flex-col gap-4">
 
           {/* Header */}
           <div className="text-center">
@@ -39,38 +103,42 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Social – 2 buttons side by side */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <button className="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 py-2.5 rounded-xl active:scale-[0.98] transition-all text-sm font-semibold text-slate-600">
-              <GoogleIcon className="w-4 h-4" />
-              Google
-            </button>
-            <button className="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 py-2.5 rounded-xl active:scale-[0.98] transition-all text-sm font-semibold text-slate-600">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#1877F2">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              Facebook
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.18em]">hoặc email</span>
-            <div className="flex-1 h-px bg-slate-100" />
-          </div>
+          {/* Hiển thị thông báo lỗi */}
+          {error && (
+            <div className="bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl border border-red-100 text-center">
+              {error}
+            </div>
+          )}
 
           {/* Fields */}
           <div className="space-y-3">
-            <InputField icon={User} label="Họ và tên" placeholder="Nguyễn Văn An" />
-            <InputField icon={Mail} label="Email" type="email" placeholder="Nhập email của bạn" />
+            <InputField 
+              icon={User} 
+              label="Họ và tên" 
+              placeholder="Nguyễn Văn An" 
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+            <InputField 
+              icon={Mail} 
+              label="Email" 
+              type="email" 
+              placeholder="Nhập email của bạn" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
             <InputField
               icon={Lock}
               label="Mật khẩu"
               type={showPass ? "text" : "password"}
-              placeholder="Tối thiểu 8 ký tự"
+              placeholder="Tối thiểu 6 ký tự"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               rightEl={
-                <button onClick={() => setShowPass(!showPass)} className="text-slate-300 hover:text-slate-500 transition-colors">
+                <button type="button" onClick={() => setShowPass(!showPass)} className="text-slate-300 hover:text-slate-500 transition-colors">
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               }
@@ -80,8 +148,11 @@ export default function RegisterPage() {
               label="Xác nhận mật khẩu"
               type={showConfirm ? "text" : "password"}
               placeholder="Nhập lại mật khẩu"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
               rightEl={
-                <button onClick={() => setShowConfirm(!showConfirm)} className="text-slate-300 hover:text-slate-500 transition-colors">
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-slate-300 hover:text-slate-500 transition-colors">
                   {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               }
@@ -90,6 +161,8 @@ export default function RegisterPage() {
 
           {/* CTA */}
           <button
+            type="submit"
+            disabled={loading}
             className="w-full py-3.5 rounded-xl text-white text-sm font-black uppercase tracking-widest active:scale-[0.98] transition-all duration-200 relative overflow-hidden group"
             style={{
               background: "linear-gradient(135deg, #F08A4B 0%, #e0591a 100%)",
@@ -98,17 +171,19 @@ export default function RegisterPage() {
           >
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{ background: "linear-gradient(135deg, #ff9d5e 0%, #e8601f 100%)" }} />
-            <span className="relative z-10">Tạo tài khoản miễn phí</span>
+            <span className="relative z-10">
+              {loading ? "Đang xử lý..." : "Tạo tài khoản miễn phí"}
+            </span>
           </button>
 
           {/* Switch */}
           <p className="text-center text-sm text-slate-400 font-medium">
             Đã có tài khoản?{" "}
-            <button onClick={() => navigate("/login")} className="text-[#F08A4B] font-bold hover:text-[#d97030] transition-colors">
+            <button type="button" onClick={() => navigate("/login")} className="text-[#F08A4B] font-bold hover:text-[#d97030] transition-colors">
               Đăng nhập
             </button>
           </p>
-        </div>
+        </form>
 
         {/* Bottom: empty spacer to balance */}
         <div className="h-7" />

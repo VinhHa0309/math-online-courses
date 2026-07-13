@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Maven/Java target
+**/target/
+**/*.class
+.mvn/wrapper/maven-wrapper.jar
+enable-tcp.ps1
