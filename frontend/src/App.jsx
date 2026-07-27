@@ -5,6 +5,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import CourseListPage from "./pages/courselist/CourseListPage";
 import PaymentPage from "./pages/courselist/PaymentPage";
+import PaymentResultPage from "./pages/courselist/PaymentResultPage";
 import PracticePage from "./pages/practice/PracticePage";
 import PracticePlayerPage from "./pages/practice-player/PracticePlayerPage";
 import DocumentPage from "./pages/document/DocumentPage";
@@ -20,6 +21,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/practice/calculus-1" element={<PracticePlayerPage />} />
+        <Route path="/payment/result" element={<PaymentResultPage />} />
 
         {/* ── NHÓM 2: CÁC TRANG CÓ HEADER & FOOTER (Dùng MainLayout) ── */}
         <Route

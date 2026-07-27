@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout, { GoogleIcon, InputField } from "../../components/layout/AuthLayout";
@@ -6,14 +6,94 @@ import AuthLayout, { GoogleIcon, InputField } from "../../components/layout/Auth
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPass, setShowPass] = useState(false);
-  
+
   // State để lưu trữ dữ liệu form
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Hàm xử lý sự kiện Đăng nhập
+  // Tải cấu hình nút đăng nhập Google khi tải trang
+  useEffect(() => {
+    /* global google */
+    const initGoogleSignIn = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "748311830548-kn2es3vejt86ibtg3vkmfh2qk9quf48s.apps.googleusercontent.com",
+          callback: handleGoogleLoginSuccess
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          {
+            theme: "outline",
+            size: "large",
+            width: "380px",
+            text: "signin_with",
+            shape: "rectangular"
+          }
+        );
+      }
+    };
+
+    // Gọi trực tiếp nếu script đã tải xong, hoặc chờ script tải xong
+    if (window.google) {
+      initGoogleSignIn();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google) {
+          initGoogleSignIn();
+          clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  // Xử lý callback khi đăng nhập Google thành công
+  const handleGoogleLoginSuccess = async (googleResponse) => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:8085/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken: googleResponse.credential }),
+      });
+
+      const data = await response.text();
+
+      if (!response.ok) {
+        throw new Error(data || "Đăng nhập bằng Google thất bại!");
+      }
+
+      const result = JSON.parse(data);
+
+      // Lưu Token và thông tin User vào localStorage
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify({
+        id: result.id,
+        fullName: result.fullName,
+        email: result.email,
+        role: result.role,
+        avatarUrl: result.avatarUrl
+      }));
+
+      alert("Đăng nhập thành công!");
+      navigate("/");
+      window.location.reload(); // Tải lại trang để cập nhật trạng thái Header
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Hàm xử lý sự kiện Đăng nhập thường
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -44,14 +124,15 @@ export default function LoginPage() {
         id: result.id,
         fullName: result.fullName,
         email: result.email,
-        role: result.role
+        role: result.role,
+        avatarUrl: result.avatarUrl
       }));
 
       // Thông báo thành công và chuyển hướng về trang chủ
       alert("Đăng nhập thành công!");
       navigate("/");
       window.location.reload(); // Tải lại trang để cập nhật trạng thái Header
-      
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -141,6 +222,19 @@ export default function LoginPage() {
               {loading ? "Đang xử lý..." : "Đăng nhập"}
             </span>
           </button>
+
+          {/* Ngăn cách "Hoặc" */}
+          <div className="relative flex items-center justify-center my-1.5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200/80"></div>
+            </div>
+            <span className="relative px-3 text-[11px] text-slate-400 bg-white font-bold uppercase tracking-widest">Hoặc đăng nhập bằng</span>
+          </div>
+
+          {/* Google Sign In Button */}
+          <div className="flex justify-center w-full min-h-[44px]">
+            <div id="googleSignInDiv" className="w-full"></div>
+          </div>
 
           {/* Switch */}
           <p className="text-center text-sm text-slate-400 font-medium">

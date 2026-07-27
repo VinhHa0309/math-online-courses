@@ -21,6 +21,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role; // Ví dụ: "USER", "ADMIN"
 
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -78,5 +81,13 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

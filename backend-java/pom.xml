@@ -80,6 +80,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Google API Client để xác thực ID Token -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

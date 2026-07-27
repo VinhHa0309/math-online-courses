@@ -26,11 +26,10 @@ public class SecurityConfig {
             // 2. Định nghĩa quyền truy cập các đường dẫn
             .authorizeHttpRequests(auth -> auth
                 // Cho phép các API công khai truy cập thoải mái mà không cần JWT token
-                .requestMatchers("/api/auth/**", "/api/health", "/api/courses").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health", "/api/courses", "/api/payment/**").permitAll()
                 // Mọi request API khác bắt buộc phải đăng nhập
                 .anyRequest().authenticated()
             );
-
         return http.build();
     }
 
@@ -39,8 +38,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Cho phép frontend ở port 5173 truy cập
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Cho phép frontend ở port 5173 truy cập (cả localhost và 127.0.0.1)
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
         
         // Cho phép tất cả các phương thức HTTP thông thường
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

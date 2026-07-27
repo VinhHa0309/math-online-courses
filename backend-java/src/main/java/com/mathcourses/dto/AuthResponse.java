@@ -8,6 +8,7 @@ public class AuthResponse {
     private String fullName;
     private String email;
     private String role;
+    private String avatarUrl;
 
     public AuthResponse(String token, User user) {
         this.token = token;
@@ -15,6 +16,7 @@ public class AuthResponse {
         this.fullName = user.getFullName();
         this.email = user.getEmail();
         this.role = user.getRole();
+        this.avatarUrl = user.getAvatarUrl();
     }
 
     // Getters and Setters
@@ -56,5 +58,13 @@ public class AuthResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

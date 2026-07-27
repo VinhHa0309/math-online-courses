@@ -190,10 +190,19 @@ export default function Header() {
               <div className="flex items-center gap-3 ml-2">
                 {/* Icon tròn đại diện cho User (Avatar) */}
                 <div 
-                  className="w-9 h-9 rounded-xl border border-[#F2EDE6] bg-[#F8FAFC] flex items-center justify-center text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#FDF2E9] hover:border-[#FDF2E9] transition-all cursor-pointer"
+                  className="w-9 h-9 rounded-xl border border-[#F2EDE6] bg-[#F8FAFC] flex items-center justify-center text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#FDF2E9] hover:border-[#FDF2E9] transition-all cursor-pointer overflow-hidden"
                   title={currentUser.fullName}
                 >
-                  <User size={16} />
+                  {currentUser.avatarUrl ? (
+                    <img 
+                      src={currentUser.avatarUrl} 
+                      alt={currentUser.fullName} 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <User size={16} />
+                  )}
                 </div>
                 
                 {/* Nút Đăng xuất */}
@@ -275,7 +284,16 @@ export default function Header() {
               {currentUser ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2.5 border border-[#F2EDE6] bg-[#F8FAFC] px-4 py-3 rounded-xl">
-                    <User size={15} className="text-[#F08A4B]" />
+                    {currentUser.avatarUrl ? (
+                      <img 
+                        src={currentUser.avatarUrl} 
+                        alt={currentUser.fullName} 
+                        className="w-6 h-6 rounded-full object-cover shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <User size={15} className="text-[#F08A4B]" />
+                    )}
                     <span className="text-sm font-bold text-[#1A2B47]">{currentUser.fullName}</span>
                   </div>
                   <button

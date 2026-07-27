@@ -3,19 +3,31 @@ package com.mathcourses.controller;
 import com.mathcourses.dto.AuthResponse;
 import com.mathcourses.dto.LoginRequest;
 import com.mathcourses.dto.RegisterRequest;
+import com.mathcourses.dto.GoogleAuthRequest;
 import com.mathcourses.model.User;
 import com.mathcourses.repository.UserRepository;
 import com.mathcourses.security.JwtUtil;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    @Value("${google.client.id}")
+    private String googleClientId;
+
 
     @Autowired
     private UserRepository userRepository;
@@ -75,5 +87,58 @@ public class AuthController {
         String token = jwtUtil.generateToken(user.getEmail());
 
         return ResponseEntity.ok(new AuthResponse(token, user));
+    }
+
+    // 3. API ĐĂNG NHẬP BẰNG GOOGLE (POST /api/auth/google)
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleAuthRequest request) {
+        try {
+            NetHttpTransport transport = new NetHttpTransport();
+            GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(request.getIdToken());
+            if (idToken == null) {
+                return ResponseEntity.badRequest().body("Token Google không hợp lệ hoặc đã hết hạn!");
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String picture = (String) payload.get("picture");
+
+            // Kiểm tra xem User đã tồn tại theo Email chưa
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            User user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+                // Cập nhật lại avatar nếu avatar trên Google thay đổi hoặc chưa có
+                if (picture != null && (user.getAvatarUrl() == null || !user.getAvatarUrl().equals(picture))) {
+                    user.setAvatarUrl(picture);
+                    user = userRepository.save(user);
+                }
+            } else {
+                // Tạo mới User nếu chưa có tài khoản
+                user = new User();
+                user.setEmail(email);
+                user.setFullName(name != null ? name : email);
+                user.setAvatarUrl(picture);
+                // Mã hóa một mật khẩu ngẫu nhiên cho tài khoản đăng nhập qua MXH
+                user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                user.setRole("USER");
+                user = userRepository.save(user);
+            }
+
+            // Tạo Token của hệ thống để trả về cho Frontend
+            String token = jwtUtil.generateToken(user.getEmail());
+
+            return ResponseEntity.ok(new AuthResponse(token, user));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Đã xảy ra lỗi khi xác thực tài khoản Google: " + e.getMessage());
+        }
     }
 }
