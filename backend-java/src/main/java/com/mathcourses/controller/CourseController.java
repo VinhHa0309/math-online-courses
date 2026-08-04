@@ -1,20 +1,28 @@
 package com.mathcourses.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.mathcourses.model.Course;
+import com.mathcourses.repository.CourseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 public class CourseController {
 
+    @Autowired
+    private CourseRepository courseRepository;
+
+    // GET /api/courses → trả về danh sách tất cả khóa học
     @GetMapping("/api/courses")
-    public List<Map<String, Object>> getCourses() {
-        return List.of(
-            Map.of("id", 1, "title", "Toán Cao Cấp 1", "price", 299000),
-            Map.of("id", 2, "title", "Toán Rời Rạc", "price", 399000),
-            Map.of("id", 3, "title", "Đại Số Tuyến Tính", "price", 349000)
-        );
+    public List<Course> getCourses() {
+        return courseRepository.findAll();
+    }
+
+    // GET /api/courses/1 → trả về 1 khóa học theo ID
+    @GetMapping("/api/courses/{id}")
+    public Course getCourseById(@PathVariable Long id) {
+        return courseRepository.findById(id).orElseThrow();
     }
 }
