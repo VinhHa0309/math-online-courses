@@ -2,21 +2,30 @@ import { Clock, PlayCircle, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function CourseCard({
-  title = "Khóa học Toán nâng cao", // Dữ liệu giả mặc định
+  id = 1,
+  title = "Khóa học Toán nâng cao",
   lessons = 20,
+  totalLessons,
   duration = 10,
+  durationHours,
   price = 500000,
   tag = "Mới",
   category = "Đại số",
-  image = "https://placehold.co/600x400/1e293b/white?text=Math+Course",
+  image,
+  imageUrl,
 }) {
+  const displayLessons = totalLessons ?? lessons;
+  const displayDuration = durationHours ?? duration;
+  const displayImage = imageUrl || image || "https://placehold.co/600x400/1e293b/white?text=Math+Course";
   const navigate = useNavigate();
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all group cursor-pointer">
+    <div
+      onClick={() => navigate(`/courses/${id}/learn`)}
+      className="bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all group cursor-pointer">
       {/* ── Hình ảnh & Tag ── */}
       <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden">
         <img
-          src={image}
+          src={displayImage}
           alt={title}
           className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
         />
@@ -46,11 +55,11 @@ export default function CourseCard({
         <div className="flex items-center gap-4 text-slate-400">
           <div className="flex items-center gap-1.5 text-[11px] font-medium">
             <PlayCircle size={14} className="text-slate-300" />
-            {lessons} bài giảng
+            {displayLessons} bài giảng
           </div>
           <div className="flex items-center gap-1.5 text-[11px] font-medium">
             <Clock size={14} className="text-slate-300" />
-            {duration} giờ
+            {displayDuration} giờ
           </div>
         </div>
 
@@ -62,7 +71,7 @@ export default function CourseCard({
             </span>
           </div>
           <button
-            onClick={() => navigate("/courses/payment")}
+            onClick={(e) => { e.stopPropagation(); navigate("/courses/payment"); }}
             className="p-2.5 bg-[#1A2B47] text-white rounded-xl hover:bg-[#F08A4B] transition-all active:scale-90 shadow-md"
           >
             <ShoppingCart size={18} />

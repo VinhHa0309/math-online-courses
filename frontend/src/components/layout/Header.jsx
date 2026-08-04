@@ -85,7 +85,7 @@ export default function Header() {
           </Link>
 
           {/* ── Nav (Desktop) ── */}
-          <nav className="hdr-nav hidden md:flex items-center gap-1 flex-1 ml-4">
+          <nav className="hdr-nav hidden md:flex items-center gap-1 ml-4">
             {NAV_LINKS.map((l) => {
               const isActive = location.pathname === l.path;
               return (

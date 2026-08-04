@@ -1,13 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SidebarFilter from "../../components/course/SidebarFilter";
 import CourseCard from "../../components/course/CourseCard";
 import Pagination from "../../components/common/Pagination";
 import { LayoutGrid, List, SlidersHorizontal, X } from "lucide-react";
-import { courses } from "../../data/courses";
 
 export default function CourseListPage() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:8085/api/courses")
+      .then((res) => res.json())
+      .then((data) => {
+        setCourses(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi kết nối API khóa học:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 min-h-screen bg-white">
@@ -61,11 +76,17 @@ export default function CourseListPage() {
           </div>
 
           {/* ── Danh sách Thẻ khóa học (Grid) ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {courses.map((course, index) => (
-              <CourseCard key={index} {...course} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="py-12 text-center text-slate-400 font-medium">
+              Đang tải danh sách khóa học từ Server...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {courses.map((course) => (
+                <CourseCard key={course.id} {...course} />
+              ))}
+            </div>
+          )}
 
           {/* ── Thanh Phân trang (Pagination) ── */}
           <Pagination
