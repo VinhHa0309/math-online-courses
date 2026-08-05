@@ -13,6 +13,7 @@ import DocumentDetailPage from "./pages/document/DocumentDetailPage";
 import NewsPage from "./pages/news/NewsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import LessonPage from "./pages/lesson/LessonPage";
+import ProfilePage from "./pages/profile/ProfilePage";
 
 function App() {
   return (
@@ -35,6 +36,9 @@ function App() {
               <Routes>
                 {/* Trang chủ */}
                 <Route path="/" element={<HomePage />} />
+
+                {/* Trang cá nhân / Hồ sơ người dùng */}
+                <Route path="/profile" element={<ProfilePage />} />
 
                 {/* Trang danh sách khóa học */}
                 <Route path="/courses" element={<CourseListPage />} />

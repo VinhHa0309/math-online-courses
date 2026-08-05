@@ -47,16 +47,24 @@ export default function Header() {
   // State lưu trữ thông tin user đã đăng nhập
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Đọc thông tin user từ localStorage khi Header render
+  // Đọc thông tin user từ localStorage khi Header render & lắng nghe sự kiện userUpdated
   useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        setCurrentUser(JSON.parse(userStr));
-      } catch (e) {
-        console.error("Lỗi parse user info từ localStorage", e);
+    const loadUser = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          setCurrentUser(JSON.parse(userStr));
+        } catch (e) {
+          console.error("Lỗi parse user info từ localStorage", e);
+        }
+      } else {
+        setCurrentUser(null);
       }
-    }
+    };
+
+    loadUser();
+    window.addEventListener("userUpdated", loadUser);
+    return () => window.removeEventListener("userUpdated", loadUser);
   }, []);
 
   // Hàm xử lý Đăng xuất
@@ -92,11 +100,10 @@ export default function Header() {
                 <Link
                   key={l.label}
                   to={l.path}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    isActive
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isActive
                       ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
                       : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
-                  }`}
+                    }`}
                 >
                   {l.label}
                 </Link>
@@ -120,11 +127,10 @@ export default function Header() {
 
             {/* Bell Icon */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className={`hidden sm:flex relative items-center justify-center w-9 h-9 rounded-xl text-[#6B7A90] hover:bg-[#F8FAFC] hover:text-[#1A2B47] border transition-all ${
-                  isNotifOpen ? "bg-[#F8FAFC] border-[#F2EDE6] text-[#1A2B47]" : "border-transparent"
-                }`}
+                className={`hidden sm:flex relative items-center justify-center w-9 h-9 rounded-xl text-[#6B7A90] hover:bg-[#F8FAFC] hover:text-[#1A2B47] border transition-all ${isNotifOpen ? "bg-[#F8FAFC] border-[#F2EDE6] text-[#1A2B47]" : "border-transparent"
+                  }`}
               >
                 <Bell className="w-[18px] h-[18px]" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F08A4B] ring-2 ring-white" />
@@ -142,20 +148,18 @@ export default function Header() {
 
                   <div className="max-h-72 overflow-y-auto divide-y divide-[#F8FAFC]">
                     {MOCK_NOTIFICATIONS.map((n) => (
-                      <div 
-                        key={n.id} 
-                        className={`p-4 hover:bg-[#F8FAFC] transition-colors flex gap-3 ${
-                          !n.isRead ? "bg-[#FFFDFB]/80" : ""
-                        }`}
+                      <div
+                        key={n.id}
+                        className={`p-4 hover:bg-[#F8FAFC] transition-colors flex gap-3 ${!n.isRead ? "bg-[#FFFDFB]/80" : ""
+                          }`}
                       >
                         <div className="mt-1.5 shrink-0">
-                          <span className={`block w-2.5 h-2.5 rounded-full ${
-                            n.type === "success" 
-                              ? "bg-emerald-500" 
-                              : n.type === "info" 
-                              ? "bg-blue-500" 
-                              : "bg-orange-500"
-                          }`} />
+                          <span className={`block w-2.5 h-2.5 rounded-full ${n.type === "success"
+                              ? "bg-emerald-500"
+                              : n.type === "info"
+                                ? "bg-blue-500"
+                                : "bg-orange-500"
+                            }`} />
                         </div>
 
                         <div className="space-y-1 flex-1">
@@ -188,23 +192,24 @@ export default function Header() {
             {currentUser ? (
               // HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP
               <div className="flex items-center gap-3 ml-2">
-                {/* Icon tròn đại diện cho User (Avatar) */}
-                <div 
-                  className="w-9 h-9 rounded-xl border border-[#F2EDE6] bg-[#F8FAFC] flex items-center justify-center text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#FDF2E9] hover:border-[#FDF2E9] transition-all cursor-pointer overflow-hidden"
-                  title={currentUser.fullName}
+                {/* Icon tròn đại diện cho User (Avatar) - Bấm vào chuyển hướng tới trang cá nhân /profile */}
+                <Link
+                  to="/profile"
+                  className="w-9 h-9 rounded-xl border border-[#F2EDE6] bg-[#F8FAFC] flex items-center justify-center text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#FDF2E9] hover:border-[#FDF2E9] hover:scale-105 transition-all cursor-pointer overflow-hidden shadow-sm"
+                  title={`Trang cá nhân của ${currentUser.fullName || "User"}`}
                 >
                   {currentUser.avatarUrl ? (
-                    <img 
-                      src={currentUser.avatarUrl} 
-                      alt={currentUser.fullName} 
+                    <img
+                      src={currentUser.avatarUrl}
+                      alt={currentUser.fullName}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <User size={16} />
                   )}
-                </div>
-                
+                </Link>
+
                 {/* Nút Đăng xuất */}
                 <button
                   onClick={handleLogout}
@@ -257,11 +262,10 @@ export default function Header() {
                 <Link
                   key={l.label}
                   to={l.path}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    isActive
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
                       ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
                       : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
-                  }`}
+                    }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {l.label}
@@ -285,9 +289,9 @@ export default function Header() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2.5 border border-[#F2EDE6] bg-[#F8FAFC] px-4 py-3 rounded-xl">
                     {currentUser.avatarUrl ? (
-                      <img 
-                        src={currentUser.avatarUrl} 
-                        alt={currentUser.fullName} 
+                      <img
+                        src={currentUser.avatarUrl}
+                        alt={currentUser.fullName}
                         className="w-6 h-6 rounded-full object-cover shrink-0"
                         referrerPolicy="no-referrer"
                       />
