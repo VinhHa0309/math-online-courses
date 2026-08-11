@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 
 export default function SidebarFilter({ onClose }) {
-  const grades = Array.from({ length: 12 }, (_, i) => i + 1);
+  const grades = [6, 7, 8, 9, 10, 11, 12];
   const topics = ["Đại số", "Hình học", "Giải tích", "Số học"];
   
-  const [selectedGrade, setSelectedGrade] = useState(10);
+  const [selectedGrade, setSelectedGrade] = useState(6);
   const [selectedTopics, setSelectedTopics] = useState(["Đại số", "Hình học"]);
   const [selectedPrice, setSelectedPrice] = useState("all");
 

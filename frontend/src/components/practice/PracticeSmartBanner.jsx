@@ -6,19 +6,18 @@ export default function PracticeSmartBanner() {
 
       <div className="space-y-4 md:space-y-6 z-10 text-center md:text-left items-center md:items-start flex flex-col">
         <span className="bg-orange-500 text-white text-[9px] md:text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">
-          ✨ AI Recommended
+          ✨ AI Đề Xuất Học Tập
         </span>
         <div className="space-y-2 md:space-y-3">
           <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
-            Smart Practice: <br className="hidden md:block" /> Integration
+            Luyện Tập Thông Minh: <br className="hidden md:block" /> Tích Phân & Đạo Hàm
           </h2>
-          <p className="text-slate-400 text-xs md:text-sm max-w-sm leading-relaxed">
-            Dựa trên kết quả gần đây, bạn cần cải thiện phần "Tích phân từng
-            phần". Dành 15 phút ngay.
+          <p className="text-slate-400 text-xs md:text-sm max-w-md leading-relaxed">
+            Dựa trên kết quả gần đây, AI đề xuất bạn nên ôn tập phần "Tích phân từng phần & ứng dụng". Dành 15 phút rèn luyện ngay!
           </p>
         </div>
-        <button className="w-full md:w-auto bg-white text-[#1A2B47] font-black py-3 md:py-4 px-8 rounded-xl md:rounded-2xl hover:bg-orange-500 hover:text-white transition-all active:scale-95 text-[11px] uppercase tracking-widest shadow-xl">
-          Start Smart Session
+        <button className="w-full md:w-auto bg-white text-[#1A2B47] font-black py-3.5 md:py-4 px-8 rounded-xl md:rounded-2xl hover:bg-orange-500 hover:text-white transition-all active:scale-95 text-xs uppercase tracking-widest shadow-xl">
+          Bắt Đầu Luyện Tập Ngay
         </button>
       </div>
 

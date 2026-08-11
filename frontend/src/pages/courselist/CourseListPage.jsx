@@ -24,6 +24,9 @@ export default function CourseListPage() {
       });
   }, []);
 
+  // ✅ Đặt thành true để test empty state, false để hiện khóa học thật
+  const forceEmpty = false; // ← đổi lại false khi test xong
+
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 min-h-screen bg-white">
       <div className="flex flex-col lg:flex-row gap-10">
@@ -38,10 +41,10 @@ export default function CourseListPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
               <h2 className="text-2xl font-black text-[#1A2B47] tracking-tight">
-                Khóa học Toán Lớp 10
+                Khóa học Toán THPT
               </h2>
               <p className="text-slate-400 text-sm mt-1">
-                Khám phá 24 khóa học chuyên sâu về Đại số và Hình học lớp 10.
+                Khám phá các khóa học chuyên sâu của Cô Thu Sương.
               </p>
             </div>
 
@@ -77,8 +80,60 @@ export default function CourseListPage() {
 
           {/* ── Danh sách Thẻ khóa học (Grid) ── */}
           {loading ? (
-            <div className="py-12 text-center text-slate-400 font-medium">
-              Đang tải danh sách khóa học từ Server...
+            // Skeleton loading
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-slate-100 rounded-3xl h-64 animate-pulse" />
+              ))}
+            </div>
+          ) : courses.length === 0 || forceEmpty ? (
+            // Empty state khi chưa có khóa học
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              {/* Illustration */}
+              <div className="relative mb-8">
+                <div className="w-36 h-36 bg-gradient-to-br from-orange-50 to-blue-50 rounded-[40px] flex items-center justify-center shadow-lg shadow-slate-100 rotate-3">
+                  <svg className="w-20 h-20 text-[#1A2B47]/20" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="14" width="46" height="56" rx="6" fill="currentColor" />
+                    <rect x="18" y="10" width="46" height="56" rx="6" fill="white" stroke="currentColor" strokeWidth="3" />
+                    <line x1="30" y1="28" x2="52" y2="28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    <line x1="30" y1="38" x2="52" y2="38" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    <line x1="30" y1="48" x2="44" y2="48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                </div>
+                {/* Decorative dots */}
+                <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-orange-300/60 blur-sm" />
+                <div className="absolute -bottom-1 -left-3 w-4 h-4 rounded-full bg-blue-200/70 blur-sm" />
+              </div>
+
+              {/* Text */}
+              <h3 className="text-2xl font-black text-[#1A2B47] tracking-tight mb-3">
+                Chưa có khóa học nào
+              </h3>
+              <p className="text-slate-400 text-sm max-w-sm leading-relaxed mb-2">
+                Giáo viên chưa đăng tải khóa học nào. Hãy quay lại sau hoặc xem các nội dung học tập khác của{" "}
+                <span className="font-semibold text-[#F08A4B]">SuongMath</span>.
+              </p>
+
+              {/* Suggested actions */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                <a
+                  href="/practice"
+                  className="flex items-center justify-center gap-2 bg-[#1A2B47] hover:bg-[#243857] text-white font-bold px-6 py-3 rounded-xl text-sm transition-all active:scale-95 shadow-md"
+                >
+                  🎯 Vào Luyện Tập Ngay
+                </a>
+                <a
+                  href="/resources"
+                  className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-[#1A2B47] font-bold px-6 py-3 rounded-xl text-sm transition-all active:scale-95"
+                >
+                  📄 Xem Tài Liệu Miễn Phí
+                </a>
+              </div>
+
+              {/* Subtle hint */}
+              <p className="text-[11px] text-slate-300 font-medium mt-8 uppercase tracking-wider">
+                Được cập nhật bởi Cô Thu Sương · SuongMath
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

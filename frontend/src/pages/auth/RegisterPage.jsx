@@ -93,7 +93,7 @@ export default function RegisterPage() {
           {/* Header */}
           <div className="text-center">
             <div className="text-xl font-black tracking-tight text-[#0F172A] mb-2">
-              Mathematiq
+              SuongMath
             </div>
             <h1 className="text-2xl font-black text-[#0F172A] tracking-tight leading-tight">
               Tạo tài khoản mới

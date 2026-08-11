@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
-/* Bạn có thể thêm các tùy chỉnh font ở dưới nếu muốn */
+/* Tùy chỉnh font chữ tiếng Việt chuẩn đẹp */
 body {
   @apply bg-[#F8FAFC];
-  font-family: "Inter", sans-serif;
+  font-family: "Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

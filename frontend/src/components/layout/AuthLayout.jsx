@@ -54,7 +54,7 @@ function RightPanel() {
           >
             Σ
           </div>
-          <span className="text-white text-[11px] font-bold tracking-[0.18em] uppercase">Mathematiq</span>
+          <span className="text-white text-[11px] font-bold tracking-[0.18em] uppercase">SuongMath</span>
         </div>
       </div>
     </div>

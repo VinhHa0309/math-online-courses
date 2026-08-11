@@ -11,6 +11,7 @@ import PracticePlayerPage from "./pages/practice-player/PracticePlayerPage";
 import DocumentPage from "./pages/document/DocumentPage";
 import DocumentDetailPage from "./pages/document/DocumentDetailPage";
 import NewsPage from "./pages/news/NewsPage";
+import NewsDetailPage from "./pages/news/NewsDetailPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import LessonPage from "./pages/lesson/LessonPage";
 import ProfilePage from "./pages/profile/ProfilePage";
@@ -58,6 +59,7 @@ function App() {
 
                 {/* Trang tin tức */}
                 <Route path="/news" element={<NewsPage />} />
+                <Route path="/news/:id" element={<NewsDetailPage />} />
 
                 {/* Bạn có thể thêm các trang như Profile, Settings... vào đây sau này */}
               </Routes>

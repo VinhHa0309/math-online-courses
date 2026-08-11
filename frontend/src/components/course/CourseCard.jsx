@@ -18,6 +18,18 @@ export default function CourseCard({
   const displayDuration = durationHours ?? duration;
   const displayImage = imageUrl || image || "https://placehold.co/600x400/1e293b/white?text=Math+Course";
   const navigate = useNavigate();
+
+  const cleanText = (str) => {
+    if (!str) return str;
+    return str
+      .replace(/Đ\?I S\?/gi, "Đại số")
+      .replace(/H\?NH H\?C/gi, "Hình học")
+      .replace(/BÁN CH\?Y/gi, "Bán chạy")
+      .replace(/M\?I/gi, "Mới");
+  };
+
+  const formattedTag = cleanText(tag);
+  const formattedCategory = cleanText(category);
   return (
     <div
       onClick={() => navigate(`/courses/${id}/learn`)}
@@ -29,9 +41,9 @@ export default function CourseCard({
           alt={title}
           className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
         />
-        {tag && (
+        {formattedTag && (
           <span className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-black px-2 py-1 rounded-md uppercase shadow-lg">
-            {tag}
+            {formattedTag}
           </span>
         )}
       </div>
@@ -43,7 +55,7 @@ export default function CourseCard({
             Lớp 10
           </span>
           <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded uppercase">
-            {category}
+            {formattedCategory}
           </span>
         </div>
 

@@ -1,13 +1,13 @@
-import { Search, Bell, Menu, X, LogOut, User } from "lucide-react";
+import { Search, Bell, Menu, X, LogOut, User, GraduationCap, Target, FileText, Newspaper, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import BrandLogo from "../common/BrandLogo";
 
 const NAV_LINKS = [
-  { label: "Khoá học", path: "/courses" },
-  { label: "Luyện tập", path: "/practice" },
-  { label: "Tài Liệu", path: "/resources" },
-  { label: "Tin tức", path: "/news" },
+  { label: "Khoá học", path: "/courses", icon: GraduationCap },
+  { label: "Luyện tập", path: "/practice", icon: Target },
+  { label: "Tài Liệu", path: "/resources", icon: FileText },
+  { label: "Tin tức", path: "/news", icon: Newspaper },
 ];
 
 const MOCK_NOTIFICATIONS = [
@@ -80,32 +80,34 @@ export default function Header() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=DM+Sans:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
         .hdr-logo { font-family: 'Playfair Display', serif; }
-        .hdr-nav  { font-family: 'DM Sans', sans-serif; }
+        .hdr-nav  { font-family: 'Be Vietnam Pro', sans-serif; }
       `}</style>
 
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#F2EDE6]">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3 lg:gap-6">
           {/* ── Logo ── */}
           <Link to="/" className="shrink-0 flex items-center">
             <BrandLogo size="xs" dark={false} showText={true} textColor="#1A2B47" />
           </Link>
 
-          {/* ── Nav (Desktop) ── */}
-          <nav className="hdr-nav hidden md:flex items-center gap-1 ml-4">
+          {/* ── Nav (Desktop & Tablet) ── */}
+          <nav className="hdr-nav hidden md:flex items-center gap-1 xl:gap-2 ml-1 lg:ml-4">
             {NAV_LINKS.map((l) => {
+              const Icon = l.icon;
               const isActive = location.pathname === l.path;
               return (
                 <Link
                   key={l.label}
                   to={l.path}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${isActive
-                      ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
-                      : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
+                  className={`flex items-center gap-2 px-2.5 lg:px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold transition-all whitespace-nowrap ${isActive
+                    ? "bg-[#FDF2E9] text-[#F08A4B] font-bold shadow-xs"
+                    : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
                     }`}
                 >
-                  {l.label}
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#F08A4B]" : "text-slate-400"}`} />
+                  <span>{l.label}</span>
                 </Link>
               );
             })}
@@ -155,10 +157,10 @@ export default function Header() {
                       >
                         <div className="mt-1.5 shrink-0">
                           <span className={`block w-2.5 h-2.5 rounded-full ${n.type === "success"
-                              ? "bg-emerald-500"
-                              : n.type === "info"
-                                ? "bg-blue-500"
-                                : "bg-orange-500"
+                            ? "bg-emerald-500"
+                            : n.type === "info"
+                              ? "bg-blue-500"
+                              : "bg-orange-500"
                             }`} />
                         </div>
 
@@ -191,7 +193,19 @@ export default function Header() {
             {/* Khối hiển thị có điều kiện: Đã đăng nhập vs Chưa đăng nhập */}
             {currentUser ? (
               // HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP
-              <div className="flex items-center gap-3 ml-2">
+              <div className="flex items-center gap-2.5 ml-2">
+                {/* Nút Admin Portal nếu vai trò là ADMIN */}
+                {(currentUser.role === "ADMIN" || currentUser.role === "INSTRUCTOR") && (
+                  <Link
+                    to="/admin"
+                    className="hidden sm:flex items-center gap-1.5 bg-[#0B132B] text-white hover:bg-[#1A2B47] text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs"
+                    title="Trang quản trị Admin"
+                  >
+                    <Shield size={14} className="text-orange-400" />
+                    <span>Admin Portal</span>
+                  </Link>
+                )}
+
                 {/* Icon tròn đại diện cho User (Avatar) - Bấm vào chuyển hướng tới trang cá nhân /profile */}
                 <Link
                   to="/profile"
@@ -257,18 +271,20 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden border-t border-[#F2EDE6] bg-white px-5 pb-5 pt-4 space-y-1 shadow-xl">
             {NAV_LINKS.map((l) => {
+              const Icon = l.icon;
               const isActive = location.pathname === l.path;
               return (
                 <Link
                   key={l.label}
                   to={l.path}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
-                      ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
-                      : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${isActive
+                    ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
+                    : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
                     }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {l.label}
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#F08A4B]" : "text-slate-400"}`} />
+                  <span>{l.label}</span>
                 </Link>
               );
             })}
