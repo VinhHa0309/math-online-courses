@@ -26,7 +26,7 @@ public class SecurityConfig {
             // 2. Định nghĩa quyền truy cập các đường dẫn
             .authorizeHttpRequests(auth -> auth
                 // Cho phép các API công khai truy cập thoải mái mà không cần JWT token
-                .requestMatchers("/api/auth/**", "/api/health", "/api/courses", "/api/payment/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health", "/api/courses/**", "/api/payment/**", "/api/admin/**", "/api/enrollments/**").permitAll()
                 // Mọi request API khác bắt buộc phải đăng nhập
                 .anyRequest().authenticated()
             );
@@ -42,7 +42,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
         
         // Cho phép tất cả các phương thức HTTP thông thường
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         
         // Cho phép các Header thông dụng
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
