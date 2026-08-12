@@ -26,7 +26,7 @@ public class SecurityConfig {
             // 2. Định nghĩa quyền truy cập các đường dẫn
             .authorizeHttpRequests(auth -> auth
                 // Cho phép các API công khai truy cập thoải mái mà không cần JWT token
-                .requestMatchers("/api/auth/**", "/api/health", "/api/courses/**", "/api/payment/**", "/api/admin/**", "/api/enrollments/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health", "/api/courses/**", "/api/payment/**", "/api/admin/**", "/api/enrollments/**", "/api/contact/**").permitAll()
                 // Mọi request API khác bắt buộc phải đăng nhập
                 .anyRequest().authenticated()
             );
