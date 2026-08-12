@@ -27,4 +27,7 @@ dist-ssr
 **/target/
 **/*.class
 .mvn/wrapper/maven-wrapper.jar
-enable-tcp.ps1
+# Secrets & Local Configurations
+**/application-local.properties
+**/*.env
+**/*.env.local
