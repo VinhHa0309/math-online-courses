@@ -14,6 +14,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Port ứng dụng (server.port=8085)
+ENV PORT=8085
 EXPOSE 8085
 
 # Cấu hình giới hạn Memory (-Xmx384m) để tránh vượt quá 512MB RAM trên Render Free

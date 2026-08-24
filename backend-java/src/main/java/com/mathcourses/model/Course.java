@@ -14,10 +14,10 @@ public class Course {
     @Column(name = "instructor_id")
     private Long instructorId;
 
-    @Column(name = "title", nullable = false, columnDefinition = "nvarchar(255)")
+    @Column(name = "title", nullable = false, length = 255)
     private String title;
 
-    @Column(name = "description", columnDefinition = "nvarchar(max)")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "category", length = 50)
