@@ -1,0 +1,19 @@
+<svg width="520" height="180" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg">
+  <title>SuongMath Logo</title>
+
+  <!-- Rounded icon box matching suongmath-icon.svg -->
+  <rect x="10" y="10" width="160" height="160" rx="36" fill="#185FA5"/>
+
+  <!-- Icon S curve matching suongmath-icon.svg -->
+  <path d="M128 60
+           C128 45, 113 39, 98 39
+           C81 39, 68 47, 68 62
+           C68 77, 83 81, 100 85
+           C119 89, 132 96, 132 113
+           C132 130, 117 141, 98 141
+           C81 141, 65 132, 63 115"
+        fill="none" stroke="#FFFFFF" stroke-width="17" stroke-linecap="round"/>
+
+  <!-- Brand text -->
+  <text x="195" y="118" font-family="'Be Vietnam Pro', 'Inter', system-ui, -apple-system, sans-serif" font-weight="900" font-size="70" fill="#1A2B47" letter-spacing="-1.5">Suong<tspan fill="#185FA5">Math</tspan></text>
+</svg>
