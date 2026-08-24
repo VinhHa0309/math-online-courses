@@ -3,12 +3,35 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
     <mirrors>
-        <!-- Mirror chính ngạch tốc độ cao, không bị Rate Limit 429 trên Render -->
         <mirror>
-            <id>aliyun-central-mirror</id>
-            <mirrorOf>central</mirrorOf>
-            <name>Aliyun Public Maven Mirror</name>
+            <id>aliyun-all-mirror</id>
+            <mirrorOf>*</mirrorOf>
+            <name>Aliyun Everything Mirror</name>
             <url>https://maven.aliyun.com/repository/public</url>
         </mirror>
     </mirrors>
+    <profiles>
+        <profile>
+            <id>render-build</id>
+            <repositories>
+                <repository>
+                    <id>central</id>
+                    <name>Central Repository</name>
+                    <url>https://maven.aliyun.com/repository/public</url>
+                    <snapshots><enabled>false</enabled></snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>central</id>
+                    <name>Central Repository</name>
+                    <url>https://maven.aliyun.com/repository/public</url>
+                    <snapshots><enabled>false</enabled></snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>render-build</activeProfile>
+    </activeProfiles>
 </settings>
