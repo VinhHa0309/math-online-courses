@@ -2,12 +2,8 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# 1. Copy pom.xml và tải dependencies trước để tận dụng Docker Cache
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# 2. Copy toàn bộ mã nguồn và tiến hành build JAR
-COPY src ./src
+# Copy mã nguồn và tiến hành package
+COPY . .
 RUN mvn clean package -DskipTests
 
 # ── Stage 2: Runtime với JRE 21 Alpine (Tối ưu RAM cho Render Free Tier 512MB) ──
