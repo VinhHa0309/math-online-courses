@@ -2,9 +2,9 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy mã nguồn và tiến hành package
+# Copy mã nguồn và file settings.xml cấu hình Mirror
 COPY . .
-RUN mvn clean package -DskipTests
+RUN mvn clean package -s settings.xml -DskipTests
 
 # ── Stage 2: Runtime với JRE 21 Alpine (Tối ưu RAM cho Render Free Tier 512MB) ──
 FROM eclipse-temurin:21-jre-alpine
