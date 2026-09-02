@@ -51,9 +51,18 @@ export default function AdminDashboard() {
 
   // State tạo khóa học mới
   const [newCourseName, setNewCourseName] = useState("");
+  const [coursePrice, setCoursePrice] = useState("");
+  const [courseGrade, setCourseGrade] = useState("12");
+  const [courseCategory, setCourseCategory] = useState("Đại số & Giải tích");
+  const [courseDescription, setCourseDescription] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Cấu hình Cloudinary chuẩn theo tài khoản của bạn
+  const CLOUD_NAME = "xea8vpcy";
+  const UPLOAD_PRESET = "math_courses";
 
   // Xử lý khi người dùng chọn file ảnh
   const handleImageChange = (e) => {
@@ -82,24 +91,72 @@ export default function AdminDashboard() {
     alert(`${action === "approve" ? "Đã duyệt" : "Đã từ chối"} học viên ${studentName}!`);
   };
 
-  // Xử lý Tạo khóa học
-  const handleCreateCourse = (e) => {
+  // Xử lý Upload Ảnh & Tạo khóa học thật vào Backend API
+  const handleCreateCourse = async (e) => {
     e.preventDefault();
     if (!newCourseName.trim()) {
       alert("Vui lòng nhập tên khóa học!");
       return;
     }
-    const newCourse = {
-      id: Date.now(),
-      title: newCourseName,
-      studentsCount: 0,
-      iconType: Math.random() > 0.5 ? "cap" : "sigma"
-    };
-    setCourses(prev => [...prev, newCourse]);
-    setNewCourseName("");
-    setImageFile(null);
-    setImagePreview(null);
-    alert("Tạo khóa học mới thành công!");
+
+    setIsSubmitting(true);
+    let uploadedImageUrl = imagePreview || "";
+
+    try {
+      // 1. Upload ảnh lên Cloudinary (nếu chọn file)
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("file", imageFile);
+        formData.append("upload_preset", UPLOAD_PRESET);
+
+        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+          method: "POST",
+          body: formData,
+        }).catch(() => null);
+
+        if (cloudRes && cloudRes.ok) {
+          const cloudData = await cloudRes.json();
+          uploadedImageUrl = cloudData.secure_url;
+        } else {
+          console.warn("Cloudinary upload failed or preset missing. Falling back to preview/direct URL.");
+        }
+      }
+
+      // 2. Gửi request tạo khóa học sang Backend Spring Boot
+      const res = await fetch("http://localhost:8085/api/admin/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newCourseName,
+          description: courseDescription || "Khóa học toán chuyên sâu cùng Cô Thu Sương",
+          price: coursePrice ? parseInt(coursePrice) : 0,
+          grade: courseGrade,
+          category: courseCategory,
+          imageUrl: uploadedImageUrl,
+          instructorId: 1
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        throw new Error(errText || "Không thể tạo khóa học trên server!");
+      }
+
+      const createdCourse = await res.json();
+      setCourses(prev => [...prev, createdCourse]);
+
+      // Reset Form
+      setNewCourseName("");
+      setCoursePrice("");
+      setCourseDescription("");
+      setImageFile(null);
+      setImagePreview(null);
+      alert(`Tạo khóa học "${createdCourse.title}" thành công!`);
+    } catch (err) {
+      alert("Lỗi khi tạo khóa học: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -262,21 +319,67 @@ export default function AdminDashboard() {
                     {/* Tên khóa học */}
                     <div className="space-y-2">
                       <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                        TÊN KHÓA HỌC
+                        TÊN KHÓA HỌC *
                       </label>
                       <input
                         type="text"
-                        placeholder="Nhập tên khóa học..."
+                        placeholder="Ví dụ: Đại số 12 - Chuyên đề Hàm số"
                         value={newCourseName}
                         onChange={(e) => setNewCourseName(e.target.value)}
+                        required
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                      />
+                    </div>
+
+                    {/* Giá & Khối lớp */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                          GIÁ KHÓA HỌC (VNĐ)
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="Ví dụ: 499000"
+                          value={coursePrice}
+                          onChange={(e) => setCoursePrice(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-blue-500/50 transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                          LỚP
+                        </label>
+                        <select
+                          value={courseGrade}
+                          onChange={(e) => setCourseGrade(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none focus:bg-white transition-all cursor-pointer"
+                        >
+                          <option value="10">Lớp 10</option>
+                          <option value="11">Lớp 11</option>
+                          <option value="12">Lớp 12</option>
+                          <option value="Luyện Thi">Luyện Thi ĐH</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Mô tả ngắn */}
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        MÔ TẢ KHÓA HỌC
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Mô tả ngắn gọn về khóa học..."
+                        value={courseDescription}
+                        onChange={(e) => setCourseDescription(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:bg-white transition-all resize-none"
                       />
                     </div>
 
                     {/* Ảnh khóa học */}
                     <div className="space-y-2">
                       <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                        ẢNH KHÓA HỌC
+                        ẢNH BÌA KHÓA HỌC
                       </label>
 
                       {/* Input file ẩn — được trigger bởi click vùng upload */}
@@ -300,7 +403,7 @@ export default function AdminDashboard() {
                             <img
                               src={imagePreview}
                               alt="Xem trước ảnh khóa học"
-                              className="w-full h-48 object-cover"
+                              className="w-full h-44 object-cover"
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                               <span className="text-white text-xs font-bold bg-black/60 px-3 py-1.5 rounded-lg">
@@ -309,15 +412,15 @@ export default function AdminDashboard() {
                             </div>
                             <div className="px-3 py-2 bg-slate-50 border-t border-slate-200 flex items-center gap-2">
                               <Upload className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="text-xs text-slate-500 truncate font-medium">{imageFile?.name}</span>
+                              <span className="text-xs text-slate-500 truncate font-medium">{imageFile?.name || "Đã chọn ảnh"}</span>
                             </div>
                           </div>
                         ) : (
                           // Vùng upload mặc định khi chưa chọn ảnh
-                          <div className="p-8 flex flex-col items-center justify-center">
-                            <Upload className="w-8 h-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                            <span className="text-xs text-slate-500 mt-3 font-semibold group-hover:text-blue-600 transition-colors">
-                              Click để chọn ảnh hoặc kéo thả vào đây
+                          <div className="p-6 flex flex-col items-center justify-center">
+                            <Upload className="w-7 h-7 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                            <span className="text-xs text-slate-500 mt-2 font-semibold group-hover:text-blue-600 transition-colors">
+                              Click chọn ảnh hoặc kéo thả vào đây
                             </span>
                             <span className="text-[10px] text-slate-400 mt-1">PNG, JPG, WEBP tối đa 10MB</span>
                           </div>
@@ -328,9 +431,10 @@ export default function AdminDashboard() {
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full bg-[#0B132B] hover:bg-[#16223F] active:scale-98 text-white font-bold py-3.5 rounded-xl transition-all shadow-md text-sm"
+                      disabled={isSubmitting}
+                      className="w-full bg-[#0B132B] hover:bg-[#16223F] active:scale-98 text-white font-bold py-3.5 rounded-xl transition-all shadow-md text-sm disabled:opacity-60"
                     >
-                      Tạo khóa học
+                      {isSubmitting ? "Đang đẩy dữ liệu & Lưu khóa học..." : "Tạo khóa học ngay"}
                     </button>
                   </form>
                 </div>

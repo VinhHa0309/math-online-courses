@@ -35,7 +35,7 @@ public class Course {
     @Column(name = "tag", length = 30)
     private String tag;
 
-    @Column(name = "image_url", length = 500)
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "lesson_count")
