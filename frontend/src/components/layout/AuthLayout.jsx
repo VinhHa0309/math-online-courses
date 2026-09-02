@@ -54,7 +54,7 @@ function RightPanel() {
           >
             Σ
           </div>
-          <span className="text-white text-[11px] font-bold tracking-[0.18em] uppercase">Mathematiq</span>
+          <span className="text-white text-[11px] font-bold tracking-[0.18em] uppercase">SuongMath</span>
         </div>
       </div>
     </div>
@@ -62,7 +62,7 @@ function RightPanel() {
 }
 
 /* ── Input Field Component ── */
-export function InputField({ icon: Icon, label, type = "text", placeholder, rightEl, hint }) {
+export function InputField({ icon: Icon, label, type = "text", placeholder, rightEl, hint, ...rest }) {
   const [focused, setFocused] = useState(false);
 
   return (
@@ -72,7 +72,7 @@ export function InputField({ icon: Icon, label, type = "text", placeholder, righ
           {label}
         </label>
         {hint && (
-          <button className="text-[11px] font-semibold text-[#F08A4B] hover:text-[#d97030] transition-colors">
+          <button type="button" className="text-[11px] font-semibold text-[#F08A4B] hover:text-[#d97030] transition-colors">
             {hint}
           </button>
         )}
@@ -92,6 +92,7 @@ export function InputField({ icon: Icon, label, type = "text", placeholder, righ
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className={`w-full bg-transparent text-sm text-slate-800 py-3.5 outline-none placeholder-slate-300 ${Icon ? "pl-10" : "pl-4"} ${rightEl ? "pr-10" : "pr-4"}`}
+          {...rest}
         />
         {rightEl && <div className="absolute right-3.5">{rightEl}</div>}
       </div>

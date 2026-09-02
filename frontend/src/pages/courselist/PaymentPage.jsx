@@ -51,8 +51,56 @@ function TrustBadge({ icon: Icon, label }) {
 export default function PaymentPage() {
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [activeMethod, setActiveMethod] = useState("qr"); // Mặc định chọn Chuyển khoản QR
+  const [selectedWallet, setSelectedWallet] = useState("MoMo"); // Mặc định chọn MoMo
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleConfirm = () => setShowSuccess(true);
+  // Tạo mã đơn hàng ngẫu nhiên khi tải trang
+  const [orderId] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
+
+  const handleConfirm = async (totalPrice) => {
+    if (activeMethod === "qr") {
+      // Giả lập hệ thống đang kiểm tra giao dịch chuyển khoản VietQR cá nhân
+      setIsProcessing(true);
+      setTimeout(() => {
+        setIsProcessing(false);
+        // Chuyển sang trang thông báo kết quả thành công
+        navigate(`/payment/result?resultCode=0&amount=${totalPrice}&orderId=${orderId}`);
+      }, 2000);
+    } else if (activeMethod === "wallet" && selectedWallet === "MoMo") {
+      setIsProcessing(true);
+      try {
+        const response = await fetch("http://localhost:8085/api/payment/momo", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: totalPrice,
+            orderInfo: "Thanh toan mua Goi Premium 12 thang",
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data && data.payUrl) {
+          // Chuyển hướng đến cổng thanh toán MoMo thật
+          window.location.href = data.payUrl;
+        } else {
+          alert("Không nhận được link thanh toán từ hệ thống MoMo. Hãy thử lại!");
+        }
+      } catch (error) {
+        console.error("Lỗi khi kết nối thanh toán MoMo: ", error);
+        alert("Có lỗi xảy ra trong quá trình khởi tạo giao dịch.");
+      } finally {
+        setIsProcessing(false);
+      }
+    } else {
+      // Mock hành vi thành công cho phương thức khác (thẻ tín dụng)
+      setShowSuccess(true);
+    }
+  };
+
   const handleClose = () => {
     setShowSuccess(false);
     navigate("/courses/learn");
@@ -93,7 +141,14 @@ export default function PaymentPage() {
           <div className="space-y-6">
             {/* Card phương thức thanh toán */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-              <PaymentMethodSelector />
+              <PaymentMethodSelector
+                activeMethod={activeMethod}
+                setActiveMethod={setActiveMethod}
+                selectedWallet={selectedWallet}
+                setSelectedWallet={setSelectedWallet}
+                amount={10000} // Truyền số tiền mặc định của khóa học (sau giảm giá)
+                orderId={orderId}
+              />
             </div>
 
             {/* Accordion thông tin hóa đơn */}
@@ -108,7 +163,7 @@ export default function PaymentPage() {
           </div>
 
           {/* ── Cột phải: Tóm tắt đơn hàng ── */}
-          <OrderSummary onConfirm={handleConfirm} />
+          <OrderSummary onConfirm={handleConfirm} isProcessing={isProcessing} />
         </div>
       </div>
     </>

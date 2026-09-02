@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout, { GoogleIcon, InputField } from "../../components/layout/AuthLayout";
@@ -6,6 +6,139 @@ import AuthLayout, { GoogleIcon, InputField } from "../../components/layout/Auth
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPass, setShowPass] = useState(false);
+
+  // State để lưu trữ dữ liệu form
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Tải cấu hình nút đăng nhập Google khi tải trang
+  useEffect(() => {
+    /* global google */
+    const initGoogleSignIn = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "748311830548-kn2es3vejt86ibtg3vkmfh2qk9quf48s.apps.googleusercontent.com",
+          callback: handleGoogleLoginSuccess
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          {
+            theme: "outline",
+            size: "large",
+            width: "380px",
+            text: "signin_with",
+            shape: "rectangular"
+          }
+        );
+      }
+    };
+
+    // Gọi trực tiếp nếu script đã tải xong, hoặc chờ script tải xong
+    if (window.google) {
+      initGoogleSignIn();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google) {
+          initGoogleSignIn();
+          clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  // Xử lý callback khi đăng nhập Google thành công
+  const handleGoogleLoginSuccess = async (googleResponse) => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:8085/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken: googleResponse.credential }),
+      });
+
+      const data = await response.text();
+
+      if (!response.ok) {
+        throw new Error(data || "Đăng nhập bằng Google thất bại!");
+      }
+
+      const result = JSON.parse(data);
+
+      // Lưu Token và thông tin User vào localStorage
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify({
+        id: result.id,
+        fullName: result.fullName,
+        email: result.email,
+        role: result.role,
+        avatarUrl: result.avatarUrl
+      }));
+
+      alert("Đăng nhập thành công!");
+      navigate("/");
+      window.location.reload(); // Tải lại trang để cập nhật trạng thái Header
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Hàm xử lý sự kiện Đăng nhập thường
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:8085/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.text();
+
+      if (!response.ok) {
+        // Nếu API trả về lỗi
+        throw new Error(data || "Đăng nhập thất bại. Vui lòng kiểm tra lại!");
+      }
+
+      // Nếu thành công, parse JSON kết quả trả về
+      const result = JSON.parse(data);
+
+      // Lưu Token và thông tin User vào localStorage
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify({
+        id: result.id,
+        fullName: result.fullName,
+        email: result.email,
+        role: result.role,
+        avatarUrl: result.avatarUrl
+      }));
+
+      // Thông báo thành công và chuyển hướng về trang chủ
+      alert("Đăng nhập thành công!");
+      navigate("/");
+      window.location.reload(); // Tải lại trang để cập nhật trạng thái Header
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AuthLayout>
@@ -23,12 +156,12 @@ export default function LoginPage() {
         </button>
 
         {/* Middle: Form */}
-        <div className="w-full max-w-[380px] mx-auto flex flex-col gap-5">
+        <form onSubmit={handleLogin} className="w-full max-w-[380px] mx-auto flex flex-col gap-5">
 
           {/* Header */}
           <div className="text-center">
             <div className="text-xl font-black tracking-tight text-[#0F172A] mb-3">
-              Mathematiq
+              SuongMath
             </div>
             <h1 className="text-2xl font-black text-[#0F172A] tracking-tight leading-tight">
               Chào mừng trở lại
@@ -38,26 +171,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Social – 2 buttons side by side */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <button className="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 py-2.5 rounded-xl active:scale-[0.98] transition-all text-sm font-semibold text-slate-600">
-              <GoogleIcon className="w-4 h-4" />
-              Google
-            </button>
-            <button className="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 py-2.5 rounded-xl active:scale-[0.98] transition-all text-sm font-semibold text-slate-600">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#1877F2">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              Facebook
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.18em]">hoặc email</span>
-            <div className="flex-1 h-px bg-slate-100" />
-          </div>
+          {/* Hiển thị thông báo lỗi nếu có */}
+          {error && (
+            <div className="bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl border border-red-100 text-center">
+              {error}
+            </div>
+          )}
 
           {/* Fields */}
           <div className="space-y-3">
@@ -66,6 +185,9 @@ export default function LoginPage() {
               label="Email"
               type="email"
               placeholder="Nhập email của bạn"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
             <InputField
               icon={Lock}
@@ -73,8 +195,11 @@ export default function LoginPage() {
               type={showPass ? "text" : "password"}
               placeholder="Nhập mật khẩu"
               hint="Quên mật khẩu?"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               rightEl={
-                <button onClick={() => setShowPass(!showPass)} className="text-slate-300 hover:text-slate-500 transition-colors">
+                <button type="button" onClick={() => setShowPass(!showPass)} className="text-slate-300 hover:text-slate-500 transition-colors">
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               }
@@ -83,6 +208,8 @@ export default function LoginPage() {
 
           {/* CTA */}
           <button
+            type="submit"
+            disabled={loading}
             className="w-full py-3.5 rounded-xl text-white text-sm font-black uppercase tracking-widest active:scale-[0.98] transition-all duration-200 relative overflow-hidden group"
             style={{
               background: "linear-gradient(135deg, #F08A4B 0%, #e0591a 100%)",
@@ -91,17 +218,32 @@ export default function LoginPage() {
           >
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{ background: "linear-gradient(135deg, #ff9d5e 0%, #e8601f 100%)" }} />
-            <span className="relative z-10">Đăng nhập</span>
+            <span className="relative z-10">
+              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            </span>
           </button>
+
+          {/* Ngăn cách "Hoặc" */}
+          <div className="relative flex items-center justify-center my-1.5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200/80"></div>
+            </div>
+            <span className="relative px-3 text-[11px] text-slate-400 bg-white font-bold uppercase tracking-widest">Hoặc đăng nhập bằng</span>
+          </div>
+
+          {/* Google Sign In Button */}
+          <div className="flex justify-center w-full min-h-[44px]">
+            <div id="googleSignInDiv" className="w-full"></div>
+          </div>
 
           {/* Switch */}
           <p className="text-center text-sm text-slate-400 font-medium">
             Chưa có tài khoản?{" "}
-            <button onClick={() => navigate("/register")} className="text-[#F08A4B] font-bold hover:text-[#d97030] transition-colors">
+            <button type="button" onClick={() => navigate("/register")} className="text-[#F08A4B] font-bold hover:text-[#d97030] transition-colors">
               Đăng ký ngay
             </button>
           </p>
-        </div>
+        </form>
 
         {/* Bottom: empty spacer to balance */}
         <div className="h-7" />

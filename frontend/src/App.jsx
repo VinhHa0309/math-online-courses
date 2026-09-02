@@ -5,12 +5,16 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import CourseListPage from "./pages/courselist/CourseListPage";
 import PaymentPage from "./pages/courselist/PaymentPage";
+import PaymentResultPage from "./pages/courselist/PaymentResultPage";
 import PracticePage from "./pages/practice/PracticePage";
 import PracticePlayerPage from "./pages/practice-player/PracticePlayerPage";
 import DocumentPage from "./pages/document/DocumentPage";
 import DocumentDetailPage from "./pages/document/DocumentDetailPage";
 import NewsPage from "./pages/news/NewsPage";
-import CoursePlayerPage from "./pages/course-player/CoursePlayerPage";
+import NewsDetailPage from "./pages/news/NewsDetailPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import LessonPage from "./pages/lesson/LessonPage";
+import ProfilePage from "./pages/profile/ProfilePage";
 
 function App() {
   return (
@@ -21,8 +25,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/practice/calculus-1" element={<PracticePlayerPage />} />
-        <Route path="/courses/:id/learn" element={<CoursePlayerPage />} />
-        <Route path="/courses/learn" element={<CoursePlayerPage />} />
+        <Route path="/payment/result" element={<PaymentResultPage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/courses/:id/learn" element={<LessonPage />} />
 
         {/* ── NHÓM 2: CÁC TRANG CÓ HEADER & FOOTER (Dùng MainLayout) ── */}
         <Route
@@ -32,6 +37,9 @@ function App() {
               <Routes>
                 {/* Trang chủ */}
                 <Route path="/" element={<HomePage />} />
+
+                {/* Trang cá nhân / Hồ sơ người dùng */}
+                <Route path="/profile" element={<ProfilePage />} />
 
                 {/* Trang danh sách khóa học */}
                 <Route path="/courses" element={<CourseListPage />} />
@@ -51,6 +59,7 @@ function App() {
 
                 {/* Trang tin tức */}
                 <Route path="/news" element={<NewsPage />} />
+                <Route path="/news/:id" element={<NewsDetailPage />} />
 
                 {/* Bạn có thể thêm các trang như Profile, Settings... vào đây sau này */}
               </Routes>

@@ -1,13 +1,13 @@
-import { Search, Bell, Menu, X } from "lucide-react";
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Search, Bell, Menu, X, LogOut, User, GraduationCap, Target, FileText, Newspaper, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import BrandLogo from "../common/BrandLogo";
 
 const NAV_LINKS = [
-  { label: "Khoá học", path: "/courses" },
-  { label: "Luyện tập", path: "/practice" },
-  { label: "Tài Liệu", path: "/resources" },
-  { label: "Tin tức", path: "/news" },
+  { label: "Khoá học", path: "/courses", icon: GraduationCap },
+  { label: "Luyện tập", path: "/practice", icon: Target },
+  { label: "Tài Liệu", path: "/resources", icon: FileText },
+  { label: "Tin tức", path: "/news", icon: Newspaper },
 ];
 
 const MOCK_NOTIFICATIONS = [
@@ -38,43 +38,76 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function Header() {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const location = useLocation(); // Lấy thông tin đường dẫn hiện tại
+  const location = useLocation();
+
+  // State lưu trữ thông tin user đã đăng nhập
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Đọc thông tin user từ localStorage khi Header render & lắng nghe sự kiện userUpdated
+  useEffect(() => {
+    const loadUser = () => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          setCurrentUser(JSON.parse(userStr));
+        } catch (e) {
+          console.error("Lỗi parse user info từ localStorage", e);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    };
+
+    loadUser();
+    window.addEventListener("userUpdated", loadUser);
+    return () => window.removeEventListener("userUpdated", loadUser);
+  }, []);
+
+  // Hàm xử lý Đăng xuất
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setCurrentUser(null);
+    alert("Đã đăng xuất tài khoản!");
+    navigate("/");
+    window.location.reload();
+  };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=DM+Sans:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
         .hdr-logo { font-family: 'Playfair Display', serif; }
-        .hdr-nav  { font-family: 'DM Sans', sans-serif; }
+        .hdr-nav  { font-family: 'Be Vietnam Pro', sans-serif; }
       `}</style>
 
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#F2EDE6]">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3 lg:gap-6">
           {/* ── Logo ── */}
           <Link to="/" className="shrink-0 flex items-center">
             <BrandLogo size="xs" dark={false} showText={true} textColor="#1A2B47" />
           </Link>
 
-          {/* ── Nav (Desktop) ── */}
-          <nav className="hdr-nav hidden md:flex items-center gap-1 flex-1 ml-4">
+          {/* ── Nav (Desktop & Tablet) ── */}
+          <nav className="hdr-nav hidden md:flex items-center gap-1 xl:gap-2 ml-1 lg:ml-4">
             {NAV_LINKS.map((l) => {
-              // Kiểm tra xem URL hiện tại có trùng với path của link hay không
+              const Icon = l.icon;
               const isActive = location.pathname === l.path;
-
               return (
                 <Link
                   key={l.label}
                   to={l.path}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-[#FDF2E9] text-[#F08A4B] font-bold" // Style khi đang ở đúng trang
-                      : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]" // Style khi ở trang khác
-                  }`}
+                  className={`flex items-center gap-2 px-2.5 lg:px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold transition-all whitespace-nowrap ${isActive
+                    ? "bg-[#FDF2E9] text-[#F08A4B] font-bold shadow-xs"
+                    : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
+                    }`}
                 >
-                  {l.label}
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#F08A4B]" : "text-slate-400"}`} />
+                  <span>{l.label}</span>
                 </Link>
               );
             })}
@@ -96,20 +129,18 @@ export default function Header() {
 
             {/* Bell Icon */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className={`hidden sm:flex relative items-center justify-center w-9 h-9 rounded-xl text-[#6B7A90] hover:bg-[#F8FAFC] hover:text-[#1A2B47] border transition-all ${
-                  isNotifOpen ? "bg-[#F8FAFC] border-[#F2EDE6] text-[#1A2B47]" : "border-transparent"
-                }`}
+                className={`hidden sm:flex relative items-center justify-center w-9 h-9 rounded-xl text-[#6B7A90] hover:bg-[#F8FAFC] hover:text-[#1A2B47] border transition-all ${isNotifOpen ? "bg-[#F8FAFC] border-[#F2EDE6] text-[#1A2B47]" : "border-transparent"
+                  }`}
               >
                 <Bell className="w-[18px] h-[18px]" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F08A4B] ring-2 ring-white" />
               </button>
 
-              {/* Hộp thoại thông báo thả xuống (Dropdown giống Facebook) */}
+              {/* Dropdown notifications */}
               {isNotifOpen && (
                 <div className="absolute right-0 mt-3 w-80 bg-white border border-[#F2EDE6] rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                  {/* Header */}
                   <div className="p-4 border-b border-[#F2EDE6] flex items-center justify-between">
                     <span className="font-outfit font-bold text-sm text-[#1A2B47]">Thông báo</span>
                     <button className="text-xs text-[#F08A4B] font-semibold hover:underline">
@@ -117,27 +148,22 @@ export default function Header() {
                     </button>
                   </div>
 
-                  {/* Danh sách thông báo */}
                   <div className="max-h-72 overflow-y-auto divide-y divide-[#F8FAFC]">
                     {MOCK_NOTIFICATIONS.map((n) => (
-                      <div 
-                        key={n.id} 
-                        className={`p-4 hover:bg-[#F8FAFC] transition-colors flex gap-3 ${
-                          !n.isRead ? "bg-[#FFFDFB]/80" : ""
-                        }`}
+                      <div
+                        key={n.id}
+                        className={`p-4 hover:bg-[#F8FAFC] transition-colors flex gap-3 ${!n.isRead ? "bg-[#FFFDFB]/80" : ""
+                          }`}
                       >
-                        {/* Trạng thái chấm màu */}
                         <div className="mt-1.5 shrink-0">
-                          <span className={`block w-2.5 h-2.5 rounded-full ${
-                            n.type === "success" 
-                              ? "bg-emerald-500" 
-                              : n.type === "info" 
-                              ? "bg-blue-500" 
+                          <span className={`block w-2.5 h-2.5 rounded-full ${n.type === "success"
+                            ? "bg-emerald-500"
+                            : n.type === "info"
+                              ? "bg-blue-500"
                               : "bg-orange-500"
-                          }`} />
+                            }`} />
                         </div>
 
-                        {/* Nội dung */}
                         <div className="space-y-1 flex-1">
                           <div className="flex justify-between items-start gap-1">
                             <h4 className="text-xs font-bold text-[#1A2B47] leading-snug">
@@ -155,7 +181,6 @@ export default function Header() {
                     ))}
                   </div>
 
-                  {/* Footer */}
                   <div className="p-3 bg-[#F8FAFC] text-center border-t border-[#F2EDE6]">
                     <button className="text-xs font-semibold text-[#1A2B47] hover:text-[#F08A4B] transition-colors">
                       Xem tất cả thông báo
@@ -165,23 +190,67 @@ export default function Header() {
               )}
             </div>
 
-            {/* Nút Đăng nhập */}
-            <Link
-              to="/login"
-              state={{ mode: "login" }}
-              className="hidden sm:flex items-center gap-1.5 bg-[#FDF2E9] text-[#F08A4B] hover:bg-[#FAD7BC] active:scale-95 text-sm font-semibold px-4 py-2 rounded-xl transition-all whitespace-nowrap"
-            >
-              Đăng nhập
-            </Link>
+            {/* Khối hiển thị có điều kiện: Đã đăng nhập vs Chưa đăng nhập */}
+            {currentUser ? (
+              // HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP
+              <div className="flex items-center gap-2.5 ml-2">
+                {/* Nút Admin Portal nếu vai trò là ADMIN */}
+                {(currentUser.role === "ADMIN" || currentUser.role === "INSTRUCTOR") && (
+                  <Link
+                    to="/admin"
+                    className="hidden sm:flex items-center gap-1.5 bg-[#0B132B] text-white hover:bg-[#1A2B47] text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs"
+                    title="Trang quản trị Admin"
+                  >
+                    <Shield size={14} className="text-orange-400" />
+                    <span>Admin Portal</span>
+                  </Link>
+                )}
 
-            {/* Nút Đăng ký */}
-            <Link
-              to="/login"
-              state={{ mode: "register" }}
-              className="hidden lg:flex items-center bg-[#1A2B47] hover:bg-[#253D63] active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all whitespace-nowrap"
-            >
-              Đăng ký
-            </Link>
+                {/* Icon tròn đại diện cho User (Avatar) - Bấm vào chuyển hướng tới trang cá nhân /profile */}
+                <Link
+                  to="/profile"
+                  className="w-9 h-9 rounded-xl border border-[#F2EDE6] bg-[#F8FAFC] flex items-center justify-center text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#FDF2E9] hover:border-[#FDF2E9] hover:scale-105 transition-all cursor-pointer overflow-hidden shadow-sm"
+                  title={`Trang cá nhân của ${currentUser.fullName || "User"}`}
+                >
+                  {currentUser.avatarUrl ? (
+                    <img
+                      src={currentUser.avatarUrl}
+                      alt={currentUser.fullName}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <User size={16} />
+                  )}
+                </Link>
+
+                {/* Nút Đăng xuất */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center w-9 h-9 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 active:scale-95 transition-all"
+                  title="Đăng xuất"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
+              // HIỂN THỊ KHI CHƯA ĐĂNG NHẬP
+              <>
+                <Link
+                  to="/login"
+                  className="hidden sm:flex items-center gap-1.5 bg-[#FDF2E9] text-[#F08A4B] hover:bg-[#FAD7BC] active:scale-95 text-sm font-semibold px-4 py-2 rounded-xl transition-all whitespace-nowrap"
+                >
+                  Đăng nhập
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="hidden lg:flex items-center bg-[#1A2B47] hover:bg-[#253D63] active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all whitespace-nowrap"
+                >
+                  Đăng ký
+                </Link>
+              </>
+            )}
 
             {/* Mobile hamburger */}
             <button
@@ -197,27 +266,29 @@ export default function Header() {
             </button>
           </div>
         </div>
+
         {/* ── Mobile Dropdown ── */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-[#F2EDE6] bg-white px-5 pb-5 pt-4 space-y-1 shadow-xl">
             {NAV_LINKS.map((l) => {
+              const Icon = l.icon;
               const isActive = location.pathname === l.path;
               return (
                 <Link
                   key={l.label}
                   to={l.path}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
-                      : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${isActive
+                    ? "bg-[#FDF2E9] text-[#F08A4B] font-bold"
+                    : "text-[#6B7A90] hover:text-[#1A2B47] hover:bg-[#F8FAFC]"
+                    }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {l.label}
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#F08A4B]" : "text-slate-400"}`} />
+                  <span>{l.label}</span>
                 </Link>
               );
             })}
-            {/* ... (Các phần Search Mobile và Button Mobile giữ nguyên như code của bạn) ... */}
+
             <div className="pt-3 pb-1 border-t border-[#F2EDE6] mt-3">
               <div className="flex items-center bg-[#F8FAFC] border border-[#F2EDE6] rounded-xl px-3 gap-2 h-10 focus-within:border-[#F08A4B]/50 transition-all">
                 <Search className="w-3.5 h-3.5 text-[#9CA3B0] shrink-0" />
@@ -228,23 +299,51 @@ export default function Header() {
                 />
               </div>
             </div>
-            <div className="flex gap-3 pt-2">
-              <Link
-                to="/login"
-                state={{ mode: "login" }}
-                onClick={() => setIsMenuOpen(false)}
-                className="flex-1 bg-[#FDF2E9] text-[#F08A4B] text-center text-sm font-semibold py-2.5 rounded-xl transition-all"
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                to="/login"
-                state={{ mode: "register" }}
-                onClick={() => setIsMenuOpen(false)}
-                className="flex-1 bg-[#1A2B47] text-white text-center text-sm font-semibold py-2.5 rounded-xl transition-all"
-              >
-                Đăng ký
-              </Link>
+
+            <div className="pt-2">
+              {currentUser ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5 border border-[#F2EDE6] bg-[#F8FAFC] px-4 py-3 rounded-xl">
+                    {currentUser.avatarUrl ? (
+                      <img
+                        src={currentUser.avatarUrl}
+                        alt={currentUser.fullName}
+                        className="w-6 h-6 rounded-full object-cover shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <User size={15} className="text-[#F08A4B]" />
+                    )}
+                    <span className="text-sm font-bold text-[#1A2B47]">{currentUser.fullName}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 text-sm font-bold py-3 rounded-xl transition-all"
+                  >
+                    <LogOut size={16} /> Đăng xuất
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex-1 bg-[#FDF2E9] text-[#F08A4B] text-center text-sm font-semibold py-2.5 rounded-xl transition-all"
+                  >
+                    <LogOut size={16} /> Đăng nhập
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex-1 bg-[#1A2B47] text-white text-center text-sm font-semibold py-2.5 rounded-xl transition-all"
+                  >
+                    Đăng ký
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -15,7 +15,7 @@ public class Lesson {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @Column(name = "title", nullable = false, length = 255)
+    @Column(name = "title", nullable = false, columnDefinition = "nvarchar(255)")
     private String title;
 
     @Column(name = "order_num", nullable = false)

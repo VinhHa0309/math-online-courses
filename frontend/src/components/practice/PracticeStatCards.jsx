@@ -3,22 +3,22 @@ import { CheckCircle, BarChart3, Flame } from "lucide-react";
 export default function PracticeStats() {
   const stats = [
     {
-      label: "Exercises Completed",
-      value: "1,284",
+      label: "Bài Tập Đã Hoàn Thành",
+      value: "1.284 bài",
       icon: CheckCircle,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
-      label: "Accuracy Rate",
+      label: "Tỉ Lệ Đúng Trung Bình",
       value: "92%",
       icon: BarChart3,
       color: "text-orange-600",
       bg: "bg-orange-50",
     },
     {
-      label: "Learning Streak",
-      value: "15 Days",
+      label: "Chuỗi Ngày Học Liên Tục",
+      value: "15 Ngày",
       icon: Flame,
       color: "text-blue-600",
       bg: "bg-blue-50",

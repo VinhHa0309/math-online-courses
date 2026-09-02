@@ -1,5 +1,6 @@
 export const courses = [
   {
+    id: 1,
     title: "Chuyên đề Hàm số bậc nhất và bậc hai nâng cao",
     lessons: 24,
     duration: 12.5,
@@ -9,6 +10,7 @@ export const courses = [
     image: "https://placehold.co/600x400/1e293b/white?text=Algebra+Lvl+10",
   },
   {
+    id: 2,
     title: "Hình học trực quan: Vector và ứng dụng thực tế",
     lessons: 18,
     duration: 9,
@@ -18,6 +20,7 @@ export const courses = [
     image: "https://placehold.co/600x400/0f172a/white?text=Vector+Geometry",
   },
   {
+    id: 3,
     title: "Thống kê và Xác suất: Nền tảng cho tương lai",
     lessons: 12,
     duration: 6,
@@ -27,6 +30,7 @@ export const courses = [
     image: "https://placehold.co/600x400/334155/white?text=Probability",
   },
   {
+    id: 4,
     title: "Bất đẳng thức và Bất phương trình một ẩn",
     lessons: 20,
     duration: 10,
@@ -36,6 +40,7 @@ export const courses = [
     image: "https://placehold.co/600x400/1e293b/white?text=Inequalities",
   },
   {
+    id: 5,
     title: "Lượng giác căn bản và các công thức biến đổi",
     lessons: 16,
     duration: 8,
@@ -45,6 +50,7 @@ export const courses = [
     image: "https://placehold.co/600x400/0f172a/white?text=Trigonometry",
   },
   {
+    id: 6,
     title: "Hệ thức lượng trong tam giác và ứng dụng",
     lessons: 14,
     duration: 7,

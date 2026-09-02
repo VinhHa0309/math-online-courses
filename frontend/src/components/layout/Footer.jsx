@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+import BrandLogo from "../common/BrandLogo";
+
 const Footer = () => {
   return (
     <footer className="w-full border-t border-gray-100 bg-white mt-12 md:mt-16 lg:mt-20">
@@ -5,11 +8,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8 md:mb-10">
           {/* Thông tin công ty */}
           <div className="space-y-3">
-            <h4 className="font-bold text-[#1A2B47] text-sm md:text-base">
-              Mathematiq
-            </h4>
-            <p className="text-gray-500 text-xs md:text-sm leading-relaxed">
-              Làm chủ toán học qua trải nghiệm học tập chuyên sâu và sinh động.
+            <Link to="/" className="inline-block">
+              <BrandLogo size="xs" showText={true} />
+            </Link>
+            <p className="text-gray-500 text-xs md:text-sm leading-relaxed pt-1">
+              Luyện thi Toán THPT (Lớp 10, 11, 12) & Ôn thi Tốt nghiệp THPT Quốc Gia cùng Cô Thu Sương.
             </p>
           </div>
 
@@ -20,19 +23,19 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <Link to="/courses" className="text-gray-500 text-xs md:text-sm hover:text-[#F08A4B] transition-colors">
                   Khoá học
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <Link to="/practice" className="text-gray-500 text-xs md:text-sm hover:text-[#F08A4B] transition-colors">
                   Luyện tập
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <Link to="/courses" className="text-gray-500 text-xs md:text-sm hover:text-[#F08A4B] transition-colors">
                   Gói cao cấp
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -44,19 +47,19 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
-                  Blog
-                </a>
+                <Link to="/news" className="text-gray-500 text-xs md:text-sm hover:text-[#F08A4B] transition-colors">
+                  Blog & Tin tức
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <Link to="/resources" className="text-gray-500 text-xs md:text-sm hover:text-[#F08A4B] transition-colors">
                   Tài liệu
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <Link to="/news" className="text-gray-500 text-xs md:text-sm hover:text-[#F08A4B] transition-colors">
                   Hỗ trợ
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -68,19 +71,19 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <span className="text-gray-500 text-xs md:text-sm cursor-pointer hover:text-[#F08A4B] transition-colors">
                   Quyền riêng tư
-                </a>
+                </span>
               </li>
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <span className="text-gray-500 text-xs md:text-sm cursor-pointer hover:text-[#F08A4B] transition-colors">
                   Điều khoản
-                </a>
+                </span>
               </li>
               <li>
-                <a href="#" className="text-gray-500 text-xs md:text-sm hover:text-[#1A2B47] transition-colors">
+                <span className="text-gray-500 text-xs md:text-sm cursor-pointer hover:text-[#F08A4B] transition-colors">
                   Liên hệ
-                </a>
+                </span>
               </li>
             </ul>
           </div>
@@ -89,7 +92,7 @@ const Footer = () => {
         {/* Đường phân cách dưới */}
         <div className="border-t border-gray-100 pt-6 md:pt-8">
           <p className="text-gray-400 text-xs md:text-sm text-center">
-            © 2024 Mathematiq. Bản quyền thuộc về Mathematiq.
+            © 2026 SuongMath. Tất cả quyền được bảo lưu.
           </p>
         </div>
       </div>

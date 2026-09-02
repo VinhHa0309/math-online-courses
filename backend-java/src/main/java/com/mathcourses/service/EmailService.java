@@ -1,6 +1,8 @@
 package com.mathcourses.service;
 
 import com.mathcourses.dto.ContactRequest;
+import com.mathcourses.model.Course;
+import com.mathcourses.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -8,12 +10,19 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private CourseRepository courseRepository;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -26,7 +35,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail, "SuongMath");
             helper.setTo(req.getEmail());
-            helper.setSubject("✅ Xác nhận đăng ký khóa học – SuongMath");
+            helper.setSubject("✅ Xác nhận đăng ký tư vấn & Bảng giá khóa học " + (req.getGrade() != null ? req.getGrade() : "") + " – SuongMath");
             helper.setText(buildStudentEmailHtml(req), true);
             mailSender.send(message);
         } catch (Exception e) {
@@ -41,7 +50,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail, "SuongMath System");
             helper.setTo(fromEmail);
-            helper.setSubject("📬 Đăng ký mới: " + req.getFullName() + " – " + (req.getCourse() != null ? req.getCourse() : "Chưa chọn"));
+            helper.setSubject("📬 Đăng ký mới: " + req.getFullName() + " – " + (req.getGrade() != null ? req.getGrade() : "Khối lớp"));
             helper.setText(buildAdminEmailHtml(req), true);
             mailSender.send(message);
         } catch (Exception e) {
@@ -49,181 +58,305 @@ public class EmailService {
         }
     }
 
+    // ── Hàm tra cứu giá tiền thực tế từ CSDL theo tên khóa học ──────────────
+    private String lookupCoursePrice(String courseName) {
+        if (courseName == null || courseName.isBlank()) return "Tư vấn miễn phí";
+        try {
+            List<Course> found = courseRepository.findByTitleContainingIgnoreCase(courseName.trim());
+            if (found != null && !found.isEmpty() && found.get(0).getPrice() != null) {
+                return String.format("%,d VNĐ", found.get(0).getPrice()).replace(',', '.');
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Không tra cứu được giá từ DB: " + e.getMessage());
+        }
+        return "Tư vấn báo giá trực tiếp";
+    }
+
+    // ── Trích xuất số lớp từ chuỗi (vd "Lớp 10" -> "10") ────────────────────
+    private String extractGradeNumber(String gradeStr) {
+        if (gradeStr == null) return "10";
+        Matcher matcher = Pattern.compile("\\d+").matcher(gradeStr);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return "10";
+    }
+
+    // ── Tạo bảng danh sách khóa học & học phí của Lớp học từ CSDL ───────────
+    private String buildGradeCoursesTableHtml(String gradeRaw) {
+        String gradeNum = extractGradeNumber(gradeRaw);
+        List<CourseItemDto> courseList = new ArrayList<>();
+
+        // Truy vấn 100% từ CSDL (Bảng `courses`)
+        try {
+            List<Course> dbCourses = courseRepository.findByGrade(gradeNum);
+            if (dbCourses != null && !dbCourses.isEmpty()) {
+                for (Course c : dbCourses) {
+                    String formattedPrice = c.getPrice() != null ? String.format("%,d VNĐ", c.getPrice()).replace(',', '.') : "Liên hệ";
+                    courseList.add(new CourseItemDto(c.getTitle(), c.getCategory() != null ? c.getCategory() : "Toán học", formattedPrice));
+                }
+            } else {
+                // Nếu chưa tìm thấy theo grade, tìm theo từ khóa lớp trong tiêu đề (vd "10")
+                List<Course> all = courseRepository.findAll();
+                for (Course c : all) {
+                    if (c.getTitle() != null && c.getTitle().contains(gradeNum)) {
+                        String formattedPrice = c.getPrice() != null ? String.format("%,d VNĐ", c.getPrice()).replace(',', '.') : "Liên hệ";
+                        courseList.add(new CourseItemDto(c.getTitle(), c.getCategory() != null ? c.getCategory() : "Toán học", formattedPrice));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Lỗi query danh sách lớp từ DB: " + e.getMessage());
+        }
+
+        if (courseList.isEmpty()) {
+            return String.format("""
+                <div style="background-color:#F8FAFC;border:1px dashed #CBD5E1;border-radius:16px;padding:16px;margin-top:20px;text-align:center;">
+                  <p style="color:#64748B;font-size:13px;margin:0;">
+                    📌 Hiện tại hệ thống đang cập nhật danh sách khóa học mới cho <strong>Lớp %s</strong> trong CSDL. Cô Sương sẽ gửi thông tin chi tiết cho em!
+                  </p>
+                </div>
+                """, gradeNum);
+        }
+
+        StringBuilder rows = new StringBuilder();
+        for (CourseItemDto item : courseList) {
+            rows.append(String.format("""
+                <tr style="border-bottom:1px solid #F1F5F9;">
+                  <td style="padding:10px 14px;color:#1A2B47;font-size:13px;font-weight:700;">%s</td>
+                  <td style="padding:10px 14px;color:#64748B;font-size:12px;">%s</td>
+                  <td align="right" style="padding:10px 14px;color:#D97706;font-size:13px;font-weight:900;">%s</td>
+                </tr>
+                """, item.title, item.category, item.price));
+        }
+
+        return String.format("""
+            <table width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;background-color:#FFFFFF;margin-top:20px;">
+              <tr>
+                <td style="background:linear-gradient(90deg, #1A2B47, #253D63);padding:14px 20px;">
+                  <span style="color:#FFFFFF;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">📚 DANH SÁCH KHÓA HỌC DÀNH CHO LỚP %s (TỪ CSDL)</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 12px;">
+                  <table width="100%%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                    <thead>
+                      <tr style="border-bottom:2px solid #E2E8F0;background-color:#F8FAFC;">
+                        <th align="left" style="padding:8px 14px;color:#64748B;font-size:11px;text-transform:uppercase;">Tên Khóa Học</th>
+                        <th align="left" style="padding:8px 14px;color:#64748B;font-size:11px;text-transform:uppercase;">Phân Loại</th>
+                        <th align="right" style="padding:8px 14px;color:#64748B;font-size:11px;text-transform:uppercase;">Học Phí</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      %s
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            """, gradeNum, rows.toString());
+    }
+
+    // Class DTO nội bộ hỗ trợ render
+    private static class CourseItemDto {
+        String title;
+        String category;
+        String price;
+        CourseItemDto(String title, String category, String price) {
+            this.title = title;
+            this.category = category;
+            this.price = price;
+        }
+    }
+
     // ── Template email gửi tới HỌC SINH ──────────────────────────────────────
     private String buildStudentEmailHtml(ContactRequest req) {
-        String course = req.getCourse() != null ? req.getCourse() : "Chưa xác định";
+        String course = req.getCourse() != null ? req.getCourse() : "Tư vấn tổng quan khóa học";
+        String fullName = req.getFullName() != null ? req.getFullName() : "Học viên";
+        String phone = req.getPhone() != null ? req.getPhone() : "(chưa cung cấp)";
+        String email = req.getEmail() != null ? req.getEmail() : "(chưa cung cấp)";
+        String grade = req.getGrade() != null ? req.getGrade() : "Lớp 10";
+        String note = (req.getNote() != null && !req.getNote().isBlank()) ? req.getNote() : "Không có";
+        String contactPhone = "0901 234 567";
 
-        // ════════════════════════════════════════════════════════════════
-        // ✏️  CHỈNH SỬA THÔNG TIN KHÓA HỌC TẠI ĐÂY
-        // ════════════════════════════════════════════════════════════════
-        String teacherName   = "Cô Sương";
-        String startDate     = "20/08/2026";
-        String schedule      = "Thứ 2 - Thứ 4 - Thứ 6 | 19:30 – 21:00";
-        String format        = "Online qua Google Meet";
-        String meetLink      = "https://meet.google.com/your-link-here";
-        String zaloGroupLink = "https://zalo.me/g/your-zalo-group";
-        String materialLink  = "https://drive.google.com/your-folder";
-        String feeAmount     = "1.500.000 VNĐ";
-        String bankAccount   = "1234567890 – Ngân hàng Techcombank";
-        String accountHolder = "NGUYEN THI SUONG";
-        String feeDeadline   = "17/08/2026";
-        String contactPhone  = "0901 234 567";
-        // ════════════════════════════════════════════════════════════════
+        // Tra cứu giá từ CSDL
+        String coursePrice = lookupCoursePrice(course);
+
+        // Tạo bảng danh sách khóa học theo đúng Lớp học mà học sinh chọn
+        String gradeCoursesTableHtml = buildGradeCoursesTableHtml(grade);
 
         return """
             <!DOCTYPE html>
             <html lang="vi">
             <head>
               <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width,initial-scale=1.0">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Xác nhận đăng ký tư vấn khóa học – SuongMath</title>
             </head>
-            <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
-              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:36px 0;">
-                <tr><td align="center">
-                  <table width="620" cellpadding="0" cellspacing="0"
-                         style="background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.09);">
+            <body style="margin:0;padding:0;background-color:#F8FAFC;font-family:'Segoe UI',Roboto,-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background-color:#F8FAFC;padding:40px 16px;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%%;background-color:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 20px 40px -15px rgba(15,23,42,0.08);border:1px solid #E2E8F0;">
+                      
+                      <!-- HERO HEADER -->
+                      <tr>
+                        <td style="background:linear-gradient(135deg, #0B132B 0%%, #1A2B47 60%%, #253D63 100%%);padding:44px 40px;text-align:center;">
+                          <table width="100%%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td align="center">
+                                <div style="display:inline-block;background:rgba(240,138,75,0.15);border:1px solid rgba(240,138,75,0.3);padding:6px 18px;border-radius:50px;margin-bottom:16px;">
+                                  <span style="color:#FFBA80;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">✨ NỀN TẢNG HỌC TOÁN CAO CẤP</span>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center">
+                                <h1 style="color:#FFFFFF;font-size:32px;font-weight:900;margin:0 0 6px;letter-spacing:-0.5px;">SuongMath</h1>
+                                <p style="color:#94A3B8;font-size:13px;margin:0;font-weight:500;">Xác Nhận Đăng Ký Tư Vấn Khóa Học</p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
 
-                    <!-- HEADER -->
-                    <tr>
-                      <td style="background:linear-gradient(135deg,#051124 0%%,#0d2240 100%%);padding:36px 48px;text-align:center;">
-                        <h1 style="color:#FFA24E;font-size:30px;font-weight:900;margin:0 0 4px;letter-spacing:-0.5px;">SuongMath</h1>
-                        <p style="color:rgba(255,255,255,0.45);font-size:11px;margin:0;text-transform:uppercase;letter-spacing:3px;">Nền tảng học Toán Online</p>
-                      </td>
-                    </tr>
+                      <!-- GREETING CARD -->
+                      <tr>
+                        <td style="padding:36px 40px 24px;">
+                          <div style="background-color:#FFF8F4;border:1px solid #FAD7BC;border-radius:16px;padding:24px;">
+                            <h2 style="color:#1A2B47;font-size:18px;font-weight:800;margin:0 0 10px;">Chào %s 👋,</h2>
+                            <p style="color:#475569;font-size:14px;line-height:1.7;margin:0;">
+                              Cảm ơn em đã gửi thông tin đăng ký tư vấn khóa học <strong style="color:#F08A4B;">%s</strong> (%s) tại SuongMath. Thầy/Cô đã tiếp nhận thông tin của em trên hệ thống!
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
 
-                    <!-- LỜI CHÀO -->
-                    <tr>
-                      <td style="padding:36px 48px 24px;">
-                        <p style="color:#0f172a;font-size:17px;font-weight:700;margin:0 0 12px;">Chào %s, 👋</p>
-                        <p style="color:#475569;font-size:14px;line-height:1.9;margin:0;">
-                          Cảm ơn em đã đăng ký tham gia khóa học <strong style="color:#0f172a;">%s</strong>.
-                          Thầy/Cô rất vui được đồng hành cùng em trong khóa học sắp tới.<br><br>
-                          Thầy/Cô xin gửi đến em thông tin chi tiết về khóa học như sau:
-                        </p>
-                      </td>
-                    </tr>
+                      <!-- SECTION 1: BẢNG TÓM TẮT THÔNG TIN ĐĂNG KÝ -->
+                      <tr>
+                        <td style="padding:0 40px 24px;">
+                          <table width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;background-color:#FFFFFF;">
+                            <tr>
+                              <td style="background:linear-gradient(90deg, #1A2B47, #243B5E);padding:14px 20px;">
+                                <span style="color:#FFFFFF;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">📋 THÔNG TIN ĐĂNG KÝ CỦA EM</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:20px;">
+                                <table width="100%%" cellpadding="6" cellspacing="0">
+                                  <tr>
+                                    <td width="38%%" style="color:#64748B;font-size:13px;font-weight:600;">👤 Họ và tên:</td>
+                                    <td width="62%%" style="color:#1A2B47;font-size:13px;font-weight:800;">%s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="color:#64748B;font-size:13px;font-weight:600;">📞 Số điện thoại:</td>
+                                    <td style="color:#1A2B47;font-size:13px;font-weight:800;">%s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="color:#64748B;font-size:13px;font-weight:600;">📧 Email liên hệ:</td>
+                                    <td style="color:#1A2B47;font-size:13px;font-weight:700;">%s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="color:#64748B;font-size:13px;font-weight:600;">🎓 Trình độ / Cấp học:</td>
+                                    <td style="color:#1A2B47;font-size:13px;font-weight:700;">%s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="color:#64748B;font-size:13px;font-weight:600;">📚 Khóa học quan tâm:</td>
+                                    <td style="color:#F08A4B;font-size:13px;font-weight:800;">%s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="color:#64748B;font-size:13px;font-weight:600;">💰 Học phí khóa học:</td>
+                                    <td style="color:#D97706;font-size:14px;font-weight:900;background-color:#FEF3C7;padding:3px 8px;border-radius:6px;display:inline-block;">%s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="color:#64748B;font-size:13px;font-weight:600;">📝 Ghi chú:</td>
+                                    <td style="color:#475569;font-size:13px;font-weight:500;">%s</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
 
-                    <!-- PHẦN 1: THÔNG TIN KHÓA HỌC -->
-                    <tr>
-                      <td style="padding:0 48px 20px;">
-                        <table width="100%%" cellspacing="0" style="border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;">
-                          <tr><td colspan="2" style="background:linear-gradient(90deg,#6366f1,#4f46e5);padding:11px 22px;">
-                            <span style="color:white;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">1. Thông tin khóa học</span>
-                          </td></tr>
-                          <tr><td style="padding:10px 22px 4px;color:#64748b;font-size:13px;width:185px;">📚 Tên khóa học:</td>
-                              <td style="padding:10px 22px 4px;color:#0f172a;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 22px;color:#64748b;font-size:13px;">👩‍🏫 Giảng viên:</td>
-                              <td style="padding:4px 22px;color:#0f172a;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 22px;color:#64748b;font-size:13px;">📅 Khai giảng:</td>
-                              <td style="padding:4px 22px;color:#0f172a;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 22px;color:#64748b;font-size:13px;">🕐 Lịch học:</td>
-                              <td style="padding:4px 22px;color:#0f172a;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 22px 12px;color:#64748b;font-size:13px;">💻 Hình thức:</td>
-                              <td style="padding:4px 22px 12px;color:#0f172a;font-size:13px;font-weight:700;">%s</td></tr>
-                        </table>
-                      </td>
-                    </tr>
+                          <!-- BẢNG CÁC KHÓA HỌC DÀNH CHO LỚP HỌC NÀY TỪ CSDL -->
+                          %s
+                        </td>
+                      </tr>
 
-                    <!-- PHẦN 2: HƯỚNG DẪN THAM GIA -->
-                    <tr>
-                      <td style="padding:0 48px 20px;">
-                        <table width="100%%" cellspacing="0" style="border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;">
-                          <tr><td colspan="2" style="background:linear-gradient(90deg,#0ea5e9,#0284c7);padding:11px 22px;">
-                            <span style="color:white;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">2. Hướng dẫn chuẩn bị &amp; Tham gia lớp học</span>
-                          </td></tr>
-                          <tr><td style="padding:10px 22px 4px;color:#64748b;font-size:13px;width:185px;">🎥 Link tham gia:</td>
-                              <td style="padding:10px 22px 4px;font-size:13px;"><a href="%s" style="color:#6366f1;font-weight:700;text-decoration:none;">%s</a></td></tr>
-                          <tr><td style="padding:4px 22px;color:#64748b;font-size:13px;">💬 Nhóm Zalo:</td>
-                              <td style="padding:4px 22px;font-size:13px;"><a href="%s" style="color:#6366f1;font-weight:700;text-decoration:none;">Bấm để tham gia nhóm →</a></td></tr>
-                          <tr><td style="padding:4px 22px 12px;color:#64748b;font-size:13px;">📂 Tài liệu:</td>
-                              <td style="padding:4px 22px 12px;font-size:13px;"><a href="%s" style="color:#6366f1;font-weight:700;text-decoration:none;">Truy cập tại đây →</a></td></tr>
-                        </table>
-                      </td>
-                    </tr>
+                      <!-- SECTION 2: BƯỚC TIẾP THEO -->
+                      <tr>
+                        <td style="padding:0 40px 24px;">
+                          <table width="100%%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;background-color:#FFFFFF;">
+                            <tr>
+                              <td style="background:linear-gradient(90deg, #0284C7, #0EA5E9);padding:14px 20px;">
+                                <span style="color:#FFFFFF;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">📞 QUY TRÌNH HỖ TRỢ TIẾP THEO</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:20px;">
+                                <p style="color:#475569;font-size:13px;line-height:1.7;margin:0 0 12px;">
+                                  Trong vòng <strong>24 giờ tới</strong>, Cô Sương hoặc bộ phận tuyển sinh SuongMath sẽ trực tiếp liên hệ với em qua Số điện thoại / Zalo <strong style="color:#0284C7;">%s</strong> để:
+                                </p>
+                                <ul style="color:#475569;font-size:13px;line-height:1.7;margin:0;padding-left:20px;">
+                                  <li>Tư vấn định hướng lộ trình học phù hợp nhất với học sinh %s.</li>
+                                  <li>Gửi bộ tài liệu ôn tập và video học thử miễn phí.</li>
+                                  <li>Hướng dẫn nhận ưu đãi học phí cho lớp học chính thức.</li>
+                                </ul>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
 
-                    <!-- PHẦN 3: HỌC PHÍ -->
-                    <tr>
-                      <td style="padding:0 48px 28px;">
-                        <table width="100%%" cellspacing="0" style="border-radius:14px;overflow:hidden;border:1px solid #fde68a;background:#fffbeb;">
-                          <tr><td colspan="2" style="background:linear-gradient(90deg,#f59e0b,#d97706);padding:11px 22px;">
-                            <span style="color:white;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">3. Hướng dẫn hoàn tất học phí</span>
-                          </td></tr>
-                          <tr><td style="padding:10px 22px 4px;color:#78350f;font-size:13px;width:185px;">💰 Số tiền:</td>
-                              <td style="padding:10px 22px 4px;color:#b45309;font-size:14px;font-weight:800;">%s</td></tr>
-                          <tr><td style="padding:4px 22px;color:#78350f;font-size:13px;">🏦 Số tài khoản:</td>
-                              <td style="padding:4px 22px;color:#92400e;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 22px;color:#78350f;font-size:13px;">👤 Chủ tài khoản:</td>
-                              <td style="padding:4px 22px;color:#92400e;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 22px;color:#78350f;font-size:13px;vertical-align:top;">📝 Nội dung CK:</td>
-                              <td style="padding:4px 22px;color:#92400e;font-size:13px;font-weight:700;">%s – %s – %s</td></tr>
-                          <tr><td style="padding:4px 22px 12px;color:#78350f;font-size:13px;">⏰ Hạn hoàn tất:</td>
-                              <td style="padding:4px 22px 12px;color:#dc2626;font-size:13px;font-weight:800;">Trước ngày %s</td></tr>
-                        </table>
-                      </td>
-                    </tr>
+                      <!-- SECTION 3: ĐẶC QUYỀN HỌC TẠI SUONGMATH -->
+                      <tr>
+                        <td style="padding:0 40px 32px;">
+                          <div style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:16px;padding:20px;">
+                            <h3 style="color:#1A2B47;font-size:14px;font-weight:800;margin:0 0 10px;">🌟 Lý do 15.000+ học sinh tin chọn SuongMath:</h3>
+                            <p style="color:#64748B;font-size:12.5px;line-height:1.6;margin:0 0 6px;">
+                              ✓ <strong>Đồ họa trực quan 3D:</strong> Giúp biến mọi công thức Toán học phức tạp trở nên sinh động, dễ nhớ.
+                            </p>
+                            <p style="color:#64748B;font-size:12.5px;line-height:1.6;margin:0 0 6px;">
+                              ✓ <strong>Bộ đề thi độc quyền:</strong> Cập nhật liên tục cấu trúc đề ĐGNL, ĐGTD và Thi ĐH 2026.
+                            </p>
+                            <p style="color:#64748B;font-size:12.5px;line-height:1.6;margin:0;">
+                              ✓ <strong>Hỗ trợ 24/7:</strong> Đội ngũ Giảng viên giải đáp mọi thắc mắc bài tập tức thì.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
 
-                    <!-- LIÊN HỆ -->
-                    <tr>
-                      <td style="padding:0 48px 28px;">
-                        <p style="color:#475569;font-size:14px;line-height:1.8;margin:0 0 14px;">
-                          Nếu em có bất kỳ thắc mắc nào hoặc cần hỗ trợ thêm, em vui lòng phản hồi (reply) lại email này hoặc liên hệ qua:
-                        </p>
-                        <table cellspacing="0">
-                          <tr><td style="padding:4px 16px 4px 0;color:#64748b;font-size:13px;">📞 Điện thoại / Zalo:</td>
-                              <td style="padding:4px 0;color:#0f172a;font-size:13px;font-weight:700;">%s</td></tr>
-                          <tr><td style="padding:4px 16px 4px 0;color:#64748b;font-size:13px;">📧 Email:</td>
-                              <td style="padding:4px 0;font-size:13px;"><a href="mailto:%s" style="color:#6366f1;font-weight:700;text-decoration:none;">%s</a></td></tr>
-                        </table>
-                      </td>
-                    </tr>
+                      <!-- FOOTER & SIGNATURE -->
+                      <tr>
+                        <td style="background-color:#F1F5F9;padding:32px 40px;text-align:center;border-top:1px solid #E2E8F0;">
+                          <p style="color:#1A2B47;font-size:14px;font-weight:800;margin:0 0 4px;">Cô Sương – Giảng Viên Toán Học SuongMath</p>
+                          <p style="color:#64748B;font-size:12px;margin:0 0 12px;">📞 Hotline / Zalo: <strong>%s</strong> | 📧 Email: <strong>%s</strong></p>
+                          <p style="color:#94A3B8;font-size:11px;margin:0;">© 2026 SuongMath · Đà Nẵng, Việt Nam. All rights reserved.</p>
+                        </td>
+                      </tr>
 
-                    <!-- LỜI CHÚC & CHỮ KÝ -->
-                    <tr>
-                      <td style="padding:0 48px 36px;">
-                        <p style="color:#475569;font-size:14px;line-height:1.8;margin:0 0 20px;">
-                          Chúc em có một khóa học hiệu quả và đạt nhiều kết quả tốt! 🌟
-                        </p>
-                        <p style="color:#0f172a;font-size:14px;line-height:1.8;margin:0;">
-                          <strong>Trân trọng,</strong><br>
-                          <span style="color:#6366f1;font-weight:800;font-size:16px;">%s</span><br>
-                          <span style="color:#64748b;font-size:13px;">Giảng viên – SuongMath</span><br>
-                          <span style="color:#64748b;font-size:13px;">📞 %s</span>
-                        </p>
-                      </td>
-                    </tr>
-
-                    <!-- FOOTER -->
-                    <tr>
-                      <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:18px 48px;text-align:center;">
-                        <p style="color:#cbd5e1;font-size:12px;margin:0;">© 2026 SuongMath · Đà Nẵng, Việt Nam</p>
-                      </td>
-                    </tr>
-
-                  </table>
-                </td></tr>
+                    </table>
+                  </td>
+                </tr>
               </table>
             </body>
             </html>
             """.formatted(
-                // Lời chào
-                req.getFullName(), course,
-                // Phần 1
-                course, teacherName, startDate, schedule, format,
-                // Phần 2
-                meetLink, meetLink, zaloGroupLink, materialLink,
-                // Phần 3
-                feeAmount, bankAccount, accountHolder,
-                req.getFullName(), req.getPhone(), course,
-                feeDeadline,
-                // Liên hệ
-                contactPhone, fromEmail, fromEmail,
-                // Chữ ký
-                teacherName, contactPhone
+                // Greeting
+                fullName, course, grade,
+                // Section 1
+                fullName, phone, email, grade, course, coursePrice, note,
+                gradeCoursesTableHtml,
+                // Section 2
+                phone, grade,
+                // Footer
+                contactPhone, fromEmail
         );
     }
 
     // ── Template email gửi tới ADMIN ─────────────────────────────────────────
     private String buildAdminEmailHtml(ContactRequest req) {
+        String coursePrice = lookupCoursePrice(req.getCourse());
+
         return """
             <!DOCTYPE html>
             <html lang="vi">
@@ -253,6 +386,8 @@ public class EmailService {
                               <td style="padding:7px 0;color:#f1f5f9;font-size:13px;">%s</td></tr>
                           <tr><td style="padding:7px 0;color:#94a3b8;font-size:13px;">📚 Khóa học:</td>
                               <td style="padding:7px 0;color:#fbbf24;font-size:13px;font-weight:700;">%s</td></tr>
+                          <tr><td style="padding:7px 0;color:#94a3b8;font-size:13px;">💰 Học phí DB:</td>
+                              <td style="padding:7px 0;color:#38bdf8;font-size:14px;font-weight:800;">%s</td></tr>
                           <tr><td style="padding:7px 0;color:#94a3b8;font-size:13px;vertical-align:top;">📝 Ghi chú:</td>
                               <td style="padding:7px 0;color:#f1f5f9;font-size:13px;">%s</td></tr>
                         </table>
@@ -277,6 +412,7 @@ public class EmailService {
                 req.getEmail()  != null ? req.getEmail()  : "(không có)",
                 req.getGrade()  != null ? req.getGrade()  : "(không chọn)",
                 req.getCourse() != null ? req.getCourse() : "(không chọn)",
+                coursePrice,
                 req.getNote()   != null && !req.getNote().isBlank() ? req.getNote() : "(trống)"
         );
     }

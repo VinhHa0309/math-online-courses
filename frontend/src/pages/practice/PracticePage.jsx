@@ -6,26 +6,30 @@ import { practiceTopics } from "../../data/practiceTopics";
 
 export default function PracticePage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+    <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 space-y-10 font-dmsans">
+      {/* Header tiêu đề */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-black text-[#1A2B47] tracking-tight">
-          Practice Arena
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1A2B47] tracking-tight">
+          Đấu Trường Luyện Tập
         </h1>
-        <p className="text-slate-400 font-medium">
-          Master mathematical concepts through targeted exercise sets.
+        <p className="text-slate-500 text-sm sm:text-base font-medium max-w-2xl">
+          Rèn luyện kiến thức Toán THPT (Lớp 10, 11, 12) qua các bộ đề chuyên đề được cá nhân hóa bởi AI.
         </p>
       </div>
 
       <PracticeStatCards />
       <PracticeSmartBanner />
 
-      <div className="space-y-8">
-        <div className="flex justify-between items-end">
-          <h3 className="text-2xl font-black text-[#1A2B47]">
-            Topical Practice
-          </h3>
-          <button className="text-xs font-black text-orange-500 uppercase tracking-widest hover:underline">
-            View All Topics
+      <div className="space-y-6">
+        <div className="flex justify-between items-end border-b border-slate-100 pb-4">
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#1A2B47]">
+              Chủ Đề Luyện Tập THPT
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">Chọn chủ đề toán học bạn muốn rèn luyện hôm nay</p>
+          </div>
+          <button className="text-xs font-bold text-orange-500 uppercase tracking-wider hover:underline">
+            Xem tất cả
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

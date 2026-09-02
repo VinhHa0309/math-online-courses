@@ -49,7 +49,7 @@ function PriceRow({ label, value, isDiscount, isBold }) {
   );
 }
 
-export default function OrderSummary({ onConfirm }) {
+export default function OrderSummary({ onConfirm, isProcessing }) {
   const [promoCode, setPromoCode] = useState("");
   const [appliedCode, setAppliedCode] = useState("");
   const [isApplying, setIsApplying] = useState(false);
@@ -195,14 +195,19 @@ export default function OrderSummary({ onConfirm }) {
 
       {/* Nút xác nhận */}
       <button
-        onClick={onConfirm}
-        className="w-full py-4 bg-[#1A2B47] text-white font-black text-sm rounded-2xl hover:bg-[#F08A4B] active:scale-95 transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 group"
+        onClick={() => onConfirm(totalPrice)}
+        disabled={isProcessing}
+        className="w-full py-4 bg-[#1A2B47] text-white font-black text-sm rounded-2xl hover:bg-[#F08A4B] active:scale-95 transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 group disabled:opacity-50"
       >
-        <Lock
-          size={15}
-          className="group-hover:rotate-12 transition-transform"
-        />
-        Xác nhận thanh toán
+        {isProcessing ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : (
+          <Lock
+            size={15}
+            className="group-hover:rotate-12 transition-transform"
+          />
+        )}
+        {isProcessing ? "Đang kết nối MoMo..." : "Xác nhận thanh toán"}
       </button>
 
       {/* Ghi chú bảo mật */}

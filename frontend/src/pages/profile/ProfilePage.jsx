@@ -1,192 +1,262 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
-  GraduationCap, 
   MapPin, 
   Calendar, 
+  BookOpen, 
+  Award, 
+  PlayCircle, 
   Mail, 
   Globe, 
-  Save, 
-  Download, 
-  Award, 
-  Play, 
   Target, 
   Video, 
-  Clock, 
-  Check, 
-  Settings 
+  Edit3, 
+  CheckCircle2, 
+  Image as ImageIcon,
+  ArrowRight,
+  ExternalLink,
+  Sparkles
 } from "lucide-react";
+import { Link } from "react-router-dom";
+
+// Ảnh avatar mặc định tuyệt đẹp nếu user chưa có avatar
+const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400";
 
 export default function ProfilePage() {
-  // Mock states for editable user profile details
-  const [email, setEmail] = useState("alex.m@stanford.edu");
-  const [joinDate, setJoinDate] = useState("September 12, 2023");
-  const [website, setWebsite] = useState("alexmorgan.math");
-  const [isSaved, setIsSaved] = useState(false);
+  // State quản lý thông tin User
+  const [user, setUser] = useState({
+    fullName: "Alex Morgan",
+    email: "alex.m@stanford.edu",
+    avatarUrl: DEFAULT_AVATAR,
+    bio: "Mathematics Enthusiast | Graduate Research Fellow at Stanford",
+    location: "Palo Alto, CA",
+    joinDate: "September 12, 2023",
+    website: "alexmorgan.math"
+  });
 
-  const handleSave = (e) => {
+  const [formData, setFormData] = useState({ ...user });
+  const [isSaved, setIsSaved] = useState(false);
+  const [liveSessionsCollapsed, setLiveSessionsCollapsed] = useState(false);
+
+  // Đọc thông tin từ localStorage khi mount
+  useEffect(() => {
+    const localUser = localStorage.getItem("user");
+    if (localUser) {
+      try {
+        const parsed = JSON.parse(localUser);
+        const updated = {
+          fullName: parsed.fullName || parsed.name || "Alex Morgan",
+          email: parsed.email || "alex.m@stanford.edu",
+          avatarUrl: parsed.avatarUrl || parsed.avatar || DEFAULT_AVATAR,
+          bio: parsed.bio || "Mathematics Enthusiast | Graduate Research Fellow at Stanford",
+          location: parsed.location || "Palo Alto, CA",
+          joinDate: parsed.createdAt 
+            ? new Date(parsed.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+            : "September 12, 2023",
+          website: parsed.website || "alexmorgan.math"
+        };
+        setUser(updated);
+        setFormData(updated);
+      } catch (e) {
+        console.error("Lỗi đọc user từ localStorage", e);
+      }
+    }
+  }, []);
+
+  // Xử lý lưu thay đổi
+  const handleSaveChanges = (e) => {
     e.preventDefault();
+    setUser(formData);
+
+    // Cập nhật lại localStorage để Header và các trang khác đồng bộ
+    const localUserStr = localStorage.getItem("user");
+    let currentObj = localUserStr ? JSON.parse(localUserStr) : {};
+    const newObj = {
+      ...currentObj,
+      fullName: formData.fullName,
+      email: formData.email,
+      avatarUrl: formData.avatarUrl,
+      bio: formData.bio,
+      location: formData.location,
+      website: formData.website
+    };
+
+    localStorage.setItem("user", JSON.stringify(newObj));
+    // Bắn event để Header lập tức cập nhật Avatar
+    window.dispatchEvent(new Event("userUpdated"));
+
     setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2500);
+    setTimeout(() => setIsSaved(false), 3000);
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 space-y-8">
+    <div className="min-h-screen bg-[#F8FAFC] pb-16 font-dmsans text-[#1E293B]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
         
-        {/* ── BANNER HERO PROFILE (PREMIUM REDESIGN) ── */}
-        <div className="relative bg-[#0B1A30] rounded-3xl overflow-hidden shadow-xl border border-slate-800 p-6 md:p-8 flex flex-col md:flex-row items-center md:items-end gap-6 min-h-[220px]">
-          {/* Vertical decorative grid lines */}
-          <div className="absolute inset-0 grid grid-cols-6 md:grid-cols-12 pointer-events-none opacity-10">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="border-r border-slate-400 h-full"></div>
-            ))}
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#091526]/90 to-transparent pointer-events-none"></div>
+        {/* ── 1. PROFILE HEADER CARD (BANNER NAVY) ── */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#0F172A] p-6 sm:p-8 md:p-10 shadow-2xl border border-slate-800 text-white">
+          {/* Subtle Background Glow Accent */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Avatar Area */}
-          <div className="relative z-10 shrink-0 flex flex-col items-center">
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-2xl bg-slate-200">
-              <img 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80" 
-                alt="Alex Morgan" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            {/* Premium Gold Badge */}
-            <div className="absolute -bottom-3 bg-gradient-to-r from-[#D97706] to-[#B45309] text-[9px] font-black text-white px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
-              👑 Premium
-            </div>
-          </div>
-
-          {/* User Info Area */}
-          <div className="relative z-10 text-center md:text-left space-y-3 flex-1 pb-2">
-            <div className="space-y-1">
-              <h2 className="text-white text-2xl md:text-3xl font-black tracking-tight">
-                Alex Morgan
-              </h2>
-              <p className="text-slate-300 text-xs md:text-sm font-medium">
-                Mathematics Enthusiast | Graduate Research Fellow at Stanford
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-xs text-slate-400 font-semibold">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#F08A4B]" />
-                <span>Palo Alto, CA</span>
+          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+            {/* Avatar Container with Badge */}
+            <div className="relative shrink-0 group">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border-4 border-slate-700/60 shadow-xl bg-slate-800 relative transition-transform duration-300 group-hover:scale-[1.02]">
+                <img
+                  src={user.avatarUrl || DEFAULT_AVATAR}
+                  alt={user.fullName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = DEFAULT_AVATAR;
+                  }}
+                  referrerPolicy="no-referrer"
+                />
               </div>
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#F08A4B]" />
-                <span>Member since Sept 2023</span>
+              {/* Premium Gold Badge */}
+              <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-slate-950 font-black text-[10px] sm:text-[11px] tracking-wider uppercase px-3 py-1 rounded-full shadow-lg border border-amber-300/40 flex items-center gap-1 whitespace-nowrap">
+                <Sparkles size={12} className="fill-slate-950 text-slate-950" />
+                PREMIUM
+              </div>
+            </div>
+
+            {/* User Info Header Details */}
+            <div className="flex-1 text-center md:text-left space-y-3 pt-2">
+              <div className="space-y-1">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white font-outfit">
+                  {user.fullName}
+                </h1>
+                <p className="text-sm sm:text-base text-slate-300 font-medium">
+                  {user.bio}
+                </p>
+              </div>
+
+              {/* Badges / Sub-info */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs sm:text-sm text-slate-400 font-medium pt-1">
+                <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/50">
+                  <MapPin size={15} className="text-amber-400" />
+                  <span>{user.location}</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/50">
+                  <Calendar size={15} className="text-amber-400" />
+                  <span>Member since {user.joinDate}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── TWO COLUMN CONTENT LAYOUT ── */}
+        {/* ── 2. MAIN LAYOUT GRID (2 COLUMNS) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* CỘT TRÁI: MY COURSES (8/12) */}
-          <div className="lg:col-span-8 space-y-6">
+          {/* ── LEFT COLUMN (MY COURSES) - 8 COLS ── */}
+          <div className="lg:col-span-8 space-y-8">
             
             {/* Section Header */}
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-6 h-6 text-[#1A2B47]" />
-                <h3 className="text-lg font-black text-[#1A2B47]">My Courses</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-500/10 text-amber-600 rounded-xl">
+                  <BookOpen size={22} />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-outfit">
+                  My Courses
+                </h2>
               </div>
-              <button 
-                onClick={() => alert("Chuyển hướng đến lộ trình học tập...")}
-                className="text-xs font-bold text-[#F08A4B] hover:underline"
+              <Link 
+                to="/courses" 
+                className="text-xs sm:text-sm font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 hover:underline transition-all"
               >
-                View Learning Path &rarr;
-              </button>
+                View Learning Path <ArrowRight size={14} />
+              </Link>
             </div>
 
-            {/* Courses Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Course Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Course 1: Advanced Calculus */}
-              <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  {/* Thumbnail area */}
-                  <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
-                    <img 
-                      src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80" 
-                      alt="Advanced Calculus" 
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 right-3 bg-white/90 backdrop-blur text-[9px] font-bold text-[#1A2B47] px-2 py-0.5 rounded-full uppercase">
-                      Intermediate
-                    </span>
-                  </div>
-                  
-                  {/* Info */}
-                  <div className="p-5 space-y-4">
-                    <h4 className="font-bold text-sm sm:text-base text-[#1A2B47] leading-snug">
-                      Advanced Calculus
-                    </h4>
-                    
-                    {/* Progress Bar */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center text-xs font-bold">
-                        <span className="text-slate-400">Course Progress</span>
-                        <span className="text-[#F08A4B]">75%</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-[#F08A4B] to-orange-500 rounded-full" style={{ width: "75%" }}></div>
-                      </div>
-                    </div>
-                  </div>
+              {/* ── COURSE CARD 1 ── */}
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all duration-300">
+                {/* Course Banner */}
+                <div className="relative h-44 bg-slate-900 overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=600" 
+                    alt="Advanced Calculus"
+                    className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                  />
+                  {/* Category Pill */}
+                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">
+                    INTERMEDIATE
+                  </span>
                 </div>
 
-                {/* Footer Button */}
-                <div className="px-5 pb-5 pt-1">
-                  <button className="w-full bg-[#1A2B47] hover:bg-[#253D63] text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Continue Learning</span>
-                  </button>
+                {/* Card Content */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 font-outfit leading-snug">
+                      Advanced Calculus
+                    </h3>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-semibold text-slate-500">
+                      <span>Course Progress</span>
+                      <span className="text-slate-900 font-bold">75%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full w-[75%] transition-all duration-500" />
+                    </div>
+                  </div>
+
+                  {/* Continue Learning Button */}
+                  <Link
+                    to="/courses/1/learn"
+                    className="w-full py-2.5 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all active:scale-[0.98]"
+                  >
+                    <PlayCircle size={16} /> Continue Learning
+                  </Link>
                 </div>
               </div>
 
-              {/* Course 2: Linear Algebra I */}
-              <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  {/* Thumbnail area */}
-                  <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
-                    <img 
-                      src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80" 
-                      alt="Linear Algebra I" 
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 right-3 bg-white/90 backdrop-blur text-[9px] font-bold text-[#1A2B47] px-2 py-0.5 rounded-full uppercase">
-                      Fundamental
-                    </span>
-                  </div>
-                  
-                  {/* Info */}
-                  <div className="p-5 space-y-4">
-                    <h4 className="font-bold text-sm sm:text-base text-[#1A2B47] leading-snug">
-                      Linear Algebra I
-                    </h4>
-                    
-                    {/* Progress Bar */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center text-xs font-bold">
-                        <span className="text-slate-400">Course Progress</span>
-                        <span className="text-emerald-500">100%</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: "100%" }}></div>
-                      </div>
-                    </div>
-                  </div>
+              {/* ── COURSE CARD 2 ── */}
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all duration-300">
+                {/* Course Banner */}
+                <div className="relative h-44 bg-slate-900 overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=600" 
+                    alt="Linear Algebra I"
+                    className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                  />
+                  {/* Category Pill */}
+                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">
+                    FUNDAMENTALS
+                  </span>
                 </div>
 
-                {/* Footer Button */}
-                <div className="px-5 pb-5 pt-1">
-                  <button className="w-full border border-[#1A2B47] hover:bg-[#F8FAFC] text-[#1A2B47] text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download Certificate</span>
+                {/* Card Content */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 font-outfit leading-snug">
+                      Linear Algebra I
+                    </h3>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-semibold text-slate-500">
+                      <span>Course Progress</span>
+                      <span className="text-emerald-600 font-bold">100%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-slate-900 rounded-full w-full transition-all duration-500" />
+                    </div>
+                  </div>
+
+                  {/* Download Certificate Button */}
+                  <button
+                    onClick={() => alert("Chứng chỉ khóa học 'Linear Algebra I' đã được gửi đến email của bạn!")}
+                    className="w-full py-2.5 border-2 border-slate-200 hover:border-slate-800 text-slate-800 hover:bg-slate-50 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  >
+                    <Award size={16} className="text-amber-500" /> Download Certificate
                   </button>
                 </div>
               </div>
@@ -194,168 +264,199 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: WIDGETS SIDEBAR (4/12) */}
+          {/* ── RIGHT COLUMN (SIDEBAR WIDGETS) - 4 COLS ── */}
           <div className="lg:col-span-4 space-y-6">
-            
-            {/* Widget 1: Information */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-sm">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h4 className="text-sm font-bold text-[#1A2B47] uppercase tracking-wide">
+
+            {/* ── WIDGET 1: INFORMATION & EDIT PROFILE ── */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-bold text-base text-slate-900 font-outfit flex items-center gap-2">
                   Information
-                </h4>
-                <Settings className="w-4 h-4 text-slate-400 cursor-pointer hover:text-slate-600" />
+                </h3>
+                <Edit3 size={16} className="text-slate-400" />
               </div>
 
-              <form onSubmit={handleSave} className="space-y-4 text-xs font-bold text-slate-400">
+              {/* Edit Form */}
+              <form onSubmit={handleSaveChanges} className="space-y-4">
                 
+                {/* Full Name */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none transition-all"
+                  />
+                </div>
+
                 {/* Primary Email */}
-                <div className="space-y-1.5">
-                  <label className="uppercase tracking-wider">Primary Email</label>
-                  <div className="relative flex items-center bg-[#F8FAFC] border border-slate-100 rounded-xl px-3 py-3 text-slate-700 font-semibold focus-within:border-orange-200">
-                    <Mail className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
-                    <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-transparent outline-none w-full text-xs" 
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Primary Email
+                  </label>
+                  <div className="relative flex items-center">
+                    <Mail size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Avatar URL */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Avatar Image URL
+                  </label>
+                  <div className="relative flex items-center">
+                    <ImageIcon size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
+                    <input
+                      type="url"
+                      placeholder="Dán liên kết ảnh Avatar..."
+                      value={formData.avatarUrl}
+                      onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Join Date */}
-                <div className="space-y-1.5">
-                  <label className="uppercase tracking-wider">Join Date</label>
-                  <div className="relative flex items-center bg-[#F8FAFC] border border-slate-100 rounded-xl px-3 py-3 text-slate-500 font-semibold cursor-not-allowed">
-                    <Calendar className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
-                    <input 
-                      type="text" 
-                      value={joinDate}
-                      readOnly
-                      className="bg-transparent outline-none w-full text-xs cursor-not-allowed" 
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Join Date
+                  </label>
+                  <div className="relative flex items-center">
+                    <Calendar size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      disabled
+                      value={formData.joinDate}
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs font-semibold text-slate-500 cursor-not-allowed"
                     />
                   </div>
                 </div>
 
                 {/* Personal Website */}
-                <div className="space-y-1.5">
-                  <label className="uppercase tracking-wider">Personal Website</label>
-                  <div className="relative flex items-center bg-[#F8FAFC] border border-slate-100 rounded-xl px-3 py-3 text-slate-700 font-semibold focus-within:border-orange-200">
-                    <Globe className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
-                    <input 
-                      type="text" 
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                      className="bg-transparent outline-none w-full text-xs" 
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Personal Website
+                  </label>
+                  <div className="relative flex items-center">
+                    <Globe size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none transition-all"
                     />
                   </div>
                 </div>
 
-                {/* Save Changes Button */}
+                {/* Toast Notification */}
+                {isSaved && (
+                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-3 py-2 rounded-xl animate-in fade-in duration-200">
+                    <CheckCircle2 size={16} /> Đã cập nhật hồ sơ & Avatar thành công!
+                  </div>
+                )}
+
+                {/* Save Changes Button (Brownish Gold Gradient like Image) */}
                 <button
                   type="submit"
-                  className={`w-full text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 ${
-                    isSaved 
-                      ? "bg-emerald-600" 
-                      : "bg-[#864A15] hover:bg-[#723E11]"
-                  }`}
+                  className="w-full py-2.5 bg-[#9E571E] hover:bg-[#854716] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-1.5"
                 >
-                  {isSaved ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Changes Saved!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      <span>Save Changes</span>
-                    </>
-                  )}
+                  <CheckCircle2 size={16} /> Save Changes
                 </button>
               </form>
             </div>
 
-            {/* Widget 2: Monthly Goals */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-sm">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h4 className="text-sm font-bold text-[#1A2B47] uppercase tracking-wide flex items-center gap-1.5">
-                  <Target className="w-4 h-4 text-[#F08A4B]" />
-                  <span>Monthly Goals</span>
-                </h4>
+            {/* ── WIDGET 2: MONTHLY GOALS ── */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-bold text-base text-slate-900 font-outfit flex items-center gap-2">
+                  Monthly Goals
+                </h3>
+                <Target size={16} className="text-slate-400" />
               </div>
 
               <div className="space-y-4">
                 {/* Goal 1 */}
-                <div className="space-y-1.5 text-xs font-bold">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Study Hours (40h)</span>
-                    <span className="text-[#1A2B47]">22h</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-slate-600">
+                    <span>Study Hours (22h)</span>
+                    <span className="text-slate-900">22h / 30h</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-600 rounded-full" style={{ width: "55%" }}></div>
+                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#9E571E] rounded-full w-[73%]" />
                   </div>
                 </div>
 
                 {/* Goal 2 */}
-                <div className="space-y-1.5 text-xs font-bold">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Theorems Solved (100)</span>
-                    <span className="text-[#1A2B47]">45</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-slate-600">
+                    <span>Theorems Solved (45)</span>
+                    <span className="text-slate-900">45 / 60</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#864A15] rounded-full" style={{ width: "45%" }}></div>
+                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#9E571E] rounded-full w-[75%]" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Widget 3: Live Sessions */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-sm">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h4 className="text-sm font-bold text-[#1A2B47] uppercase tracking-wide flex items-center gap-1.5">
-                  <Video className="w-4 h-4 text-[#F08A4B]" />
-                  <span>Live Sessions</span>
-                </h4>
+            {/* ── WIDGET 3: LIVE SESSIONS ── */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-bold text-base text-slate-900 font-outfit flex items-center gap-2">
+                  Live Sessions
+                </h3>
+                <button 
+                  onClick={() => setLiveSessionsCollapsed(!liveSessionsCollapsed)}
+                  className="text-slate-400 hover:text-slate-600 text-lg font-bold px-1"
+                >
+                  {liveSessionsCollapsed ? "+" : "−"}
+                </button>
               </div>
 
-              <div className="space-y-3">
-                {/* Session 1 */}
-                <div className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100">
-                  {/* Date Badge */}
-                  <div className="bg-red-50 text-red-600 rounded-lg p-2 flex flex-col items-center shrink-0 w-11 h-11 justify-center border border-red-100/50">
-                    <span className="text-[8px] font-black uppercase tracking-wider leading-none">Oct</span>
-                    <span className="text-sm font-black leading-none">24</span>
+              {!liveSessionsCollapsed && (
+                <div className="space-y-3.5">
+                  {/* Event 1 */}
+                  <div className="flex items-center gap-3.5 p-2.5 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                    <div className="bg-rose-50 text-rose-600 flex flex-col items-center justify-center w-11 h-11 rounded-xl font-black shrink-0 border border-rose-100">
+                      <span className="text-[9px] uppercase tracking-wider font-extrabold">MAY</span>
+                      <span className="text-sm leading-none">24</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                        Complex Analysis Lab
+                      </h4>
+                      <p className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                        <Video size={12} className="text-slate-400" /> 10:00 AM • Online
+                      </p>
+                    </div>
                   </div>
-                  {/* Details */}
-                  <div className="min-w-0 flex-1">
-                    <h5 className="text-xs font-bold text-[#1A2B47] truncate leading-tight">
-                      Complex Analysis Lab
-                    </h5>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-semibold mt-0.5">
-                      <Clock className="w-3 h-3 text-[#F08A4B]" />
-                      <span>10:00 AM - Online</span>
+
+                  {/* Event 2 */}
+                  <div className="flex items-center gap-3.5 p-2.5 rounded-xl hover:bg-slate-50 transition-colors border border-slate-100">
+                    <div className="bg-slate-100 text-slate-700 flex flex-col items-center justify-center w-11 h-11 rounded-xl font-black shrink-0 border border-slate-200">
+                      <span className="text-[9px] uppercase tracking-wider font-extrabold">MAY</span>
+                      <span className="text-sm leading-none">26</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                        Algebra Seminar
+                      </h4>
+                      <p className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                        <Video size={12} className="text-slate-400" /> 02:00 PM • Zoom
+                      </p>
                     </div>
                   </div>
                 </div>
-
-                {/* Session 2 */}
-                <div className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100">
-                  {/* Date Badge */}
-                  <div className="bg-red-50 text-red-600 rounded-lg p-2 flex flex-col items-center shrink-0 w-11 h-11 justify-center border border-red-100/50">
-                    <span className="text-[8px] font-black uppercase tracking-wider leading-none">Oct</span>
-                    <span className="text-sm font-black leading-none">26</span>
-                  </div>
-                  {/* Details */}
-                  <div className="min-w-0 flex-1">
-                    <h5 className="text-xs font-bold text-[#1A2B47] truncate leading-tight">
-                      Algebra Seminar
-                    </h5>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-semibold mt-0.5">
-                      <Clock className="w-3 h-3 text-[#F08A4B]" />
-                      <span>02:00 PM - Zoom</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
           </div>

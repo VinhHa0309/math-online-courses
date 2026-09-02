@@ -98,35 +98,9 @@ function CardForm() {
   );
 }
 
-// ── Logos của các ví điện tử ────────────────────────────────
-const WALLET_LOGOS = {
-  MoMo: (
-    <div className="w-7 h-7 rounded-lg bg-[#A50064] flex items-center justify-center shrink-0 shadow-sm">
-      <span className="text-[10px] text-white font-extrabold tracking-tighter">momo</span>
-    </div>
-  ),
-  ZaloPay: (
-    <div className="w-7 h-7 rounded-lg bg-[#008FE5] flex items-center justify-center shrink-0 shadow-sm relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#008FE5] to-[#00b46e] opacity-90" />
-      <span className="text-[9px] text-white font-black tracking-tighter relative z-10">Zalo</span>
-    </div>
-  ),
-  VNPay: (
-    <div className="w-7 h-7 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-      <span className="text-[8px] font-black tracking-tighter text-[#0054A5]">VN<span className="text-[#ED1C24]">PAY</span></span>
-    </div>
-  ),
-  ShopeePay: (
-    <div className="w-7 h-7 rounded-lg bg-[#EE4D2D] flex items-center justify-center shrink-0 shadow-sm">
-      <span className="text-[8px] text-white font-black tracking-tighter">SPay</span>
-    </div>
-  )
-};
-
 // ── Form ví điện tử ───────────────────────────────────────
-function WalletForm() {
+function WalletForm({ selectedWallet, setSelectedWallet }) {
   const wallets = ["MoMo", "ZaloPay", "VNPay", "ShopeePay"];
-  const [selected, setSelected] = useState("MoMo");
 
   return (
     <div className="mt-5 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -137,54 +111,96 @@ function WalletForm() {
         {wallets.map((w) => (
           <button
             key={w}
-            onClick={() => setSelected(w)}
-            className={`py-2.5 px-4 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 flex items-center gap-3 ${
-              selected === w
+            onClick={() => setSelectedWallet(w)}
+            className={`py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
+              selectedWallet === w
                 ? "border-orange-400 bg-orange-50 text-[#1A2B47]"
-                : "border-slate-100 text-slate-400 bg-white hover:border-slate-200 hover:text-slate-600"
+                : "border-slate-100 text-slate-400 hover:border-slate-200"
             }`}
           >
-            {WALLET_LOGOS[w]}
-            <span className="font-outfit">{w}</span>
+            {w}
           </button>
         ))}
       </div>
       <p className="mt-4 text-xs text-slate-400 text-center">
         Bạn sẽ được chuyển đến ứng dụng{" "}
-        <span className="font-bold text-[#1A2B47]">{selected}</span> để xác nhận
+        <span className="font-bold text-[#1A2B47]">{selectedWallet}</span> để xác nhận
         thanh toán.
       </p>
     </div>
   );
 }
 
+// ── Cấu hình thông tin tài khoản ngân hàng của bạn ──────────────────
+const BANK_CONFIG = {
+  bankId: "vietcombank",          // Mã ngân hàng Vietcombank
+  accountNo: "1039803112",        // Số tài khoản Vietcombank của bạn
+  accountName: "NGUYEN VINH HA",  // Tên chủ tài khoản (viết hoa không dấu)
+};
+
 // ── Form chuyển khoản QR ──────────────────────────────────
-function QRForm() {
+function QRForm({ amount, orderId }) {
+  const note = `MATH ${orderId}`;
+  
+  // URL tạo mã VietQR động từ vietqr.io
+  const qrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact.png?amount=${amount}&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+
   return (
     <div className="mt-5 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-      {/* Placeholder QR code */}
-      <div className="w-40 h-40 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center">
-        <QrCode size={80} className="text-slate-300" />
+      {/* Mã QR ngân hàng thật */}
+      <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-md">
+        <img src={qrUrl} alt="VietQR Payment Code" className="w-52 h-52 object-contain" />
       </div>
-      <div className="text-center space-y-1">
+      
+      <div className="text-center space-y-1.5 px-4">
         <p className="text-sm font-bold text-[#1A2B47]">
-          Quét mã QR để thanh toán
+          Quét mã QR để chuyển khoản Vietcombank
         </p>
-        <p className="text-xs text-slate-400">
-          Mở ứng dụng ngân hàng → Quét QR → Xác nhận
+        <p className="text-xs text-slate-500">
+          Bạn có thể dùng ứng dụng **MoMo** hoặc bất kỳ **App Ngân hàng** nào quét mã này.
         </p>
       </div>
-      <p className="text-xs text-orange-500 font-bold bg-orange-50 px-4 py-2 rounded-xl">
-        Mã có hiệu lực trong 15:00 phút
+
+      {/* Thông tin chuyển khoản hiển thị chữ để đối chiếu */}
+      <div className="w-full bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2 text-xs">
+        <div className="flex justify-between">
+          <span className="text-slate-400">Ngân hàng:</span>
+          <span className="font-bold text-[#1A2B47] uppercase">{BANK_CONFIG.bankId}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-400">Số tài khoản:</span>
+          <span className="font-bold text-[#1A2B47]">{BANK_CONFIG.accountNo}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-400">Chủ tài khoản:</span>
+          <span className="font-bold text-[#1A2B47]">{BANK_CONFIG.accountName}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-400">Số tiền:</span>
+          <span className="font-bold text-orange-500">{amount.toLocaleString("vi-VN")}đ</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-400">Nội dung chuyển khoản:</span>
+          <span className="font-bold text-orange-500">{note}</span>
+        </div>
+      </div>
+
+      <p className="text-[10px] text-red-500 font-medium bg-red-50 px-3 py-1.5 rounded-lg text-center">
+        *Lưu ý: Giữ nguyên nội dung chuyển khoản để chúng tôi xác nhận giao dịch nhanh nhất.
       </p>
     </div>
   );
 }
 
 // ── Component chính ───────────────────────────────────────
-export default function PaymentMethodSelector() {
-  const [activeMethod, setActiveMethod] = useState("card");
-
+export default function PaymentMethodSelector({
+  activeMethod,
+  setActiveMethod,
+  selectedWallet,
+  setSelectedWallet,
+  amount,
+  orderId,
+}) {
   return (
     <section>
       <h2 className="text-base font-black text-[#1A2B47] mb-4">
@@ -205,8 +221,13 @@ export default function PaymentMethodSelector() {
 
       {/* Nội dung theo tab */}
       {activeMethod === "card" && <CardForm />}
-      {activeMethod === "wallet" && <WalletForm />}
-      {activeMethod === "qr" && <QRForm />}
+      {activeMethod === "wallet" && (
+        <WalletForm
+          selectedWallet={selectedWallet}
+          setSelectedWallet={setSelectedWallet}
+        />
+      )}
+      {activeMethod === "qr" && <QRForm amount={amount} orderId={orderId} />}
     </section>
   );
 }
