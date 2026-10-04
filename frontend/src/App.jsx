@@ -13,8 +13,11 @@ import DocumentDetailPage from "./pages/document/DocumentDetailPage";
 import NewsPage from "./pages/news/NewsPage";
 import NewsDetailPage from "./pages/news/NewsDetailPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminCourseDetailPage from "./pages/admin/AdminCourseDetailPage";
 import LessonPage from "./pages/lesson/LessonPage";
 import ProfilePage from "./pages/profile/ProfilePage";
+
+import AdminProtectedRoute from "./components/auth/AdminProtectedRoute";
 
 function App() {
   return (
@@ -26,7 +29,24 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/practice/calculus-1" element={<PracticePlayerPage />} />
         <Route path="/payment/result" element={<PaymentResultPage />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        
+        {/* Chặn truy cập trang Admin nếu không có quyền ADMIN / INSTRUCTOR */}
+        <Route
+          path="/admin"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/courses/:id"
+          element={
+            <AdminProtectedRoute>
+              <AdminCourseDetailPage />
+            </AdminProtectedRoute>
+          }
+        />
         <Route path="/courses/:id/learn" element={<LessonPage />} />
 
         {/* ── NHÓM 2: CÁC TRANG CÓ HEADER & FOOTER (Dùng MainLayout) ── */}

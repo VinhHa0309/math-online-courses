@@ -9,19 +9,49 @@ export default function CourseListPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [courses, setCourses] = useState([]);
+  const [enrollmentMap, setEnrollmentMap] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Tải danh sách khóa học từ Backend
     fetch("http://localhost:8085/api/courses")
       .then((res) => res.json())
       .then((data) => {
-        setCourses(data);
+        if (Array.isArray(data)) {
+          setCourses(data);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("Lỗi khi kết nối API khóa học:", err);
         setLoading(false);
       });
+
+    // 2. Lấy thông tin user từ localStorage để kiểm tra enrollment
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user && user.id) {
+          fetch(`http://localhost:8085/api/enrollments/user/${user.id}`)
+            .then((res) => res.json())
+            .then((enrollments) => {
+              if (Array.isArray(enrollments)) {
+                const map = {};
+                enrollments.forEach((e) => {
+                  if (e.courseId) {
+                    map[e.courseId] = e.status;
+                  }
+                });
+                setEnrollmentMap(map);
+              }
+            })
+            .catch((err) => console.error("Lỗi lấy enrollments của user:", err));
+        }
+      }
+    } catch (e) {
+      console.error("Lỗi đọc user:", e);
+    }
   }, []);
 
   // ✅ Đặt thành true để test empty state, false để hiện khóa học thật
@@ -138,7 +168,11 @@ export default function CourseListPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {courses.map((course) => (
-                <CourseCard key={course.id} {...course} />
+                <CourseCard
+                  key={course.id}
+                  {...course}
+                  enrollmentStatus={enrollmentMap[course.id] || null}
+                />
               ))}
             </div>
           )}

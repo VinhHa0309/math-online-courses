@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle2,
   Lock,
@@ -13,8 +13,10 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Hourglass,
+  ArrowLeft,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/layout/Header";
 import { MOCK_COURSE, MOCK_CHAPTERS, MOCK_LESSON } from "../../data/lessonData";
 
@@ -287,10 +289,34 @@ function DocumentsTab({ documents }) {
 ───────────────────────────────────────── */
 export default function LessonPage() {
   const navigate = useNavigate();
+  const { id: courseId } = useParams();
   const [currentLesson, setCurrentLesson] = useState(MOCK_LESSON);
   const [activeTab, setActiveTab] = useState("overview");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState(null); // "APPROVED" | "PENDING" | "NOT_ENROLLED"
+
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user && user.id) {
+          fetch(`http://localhost:8085/api/enrollments/check?userId=${user.id}&courseId=${courseId || 1}`)
+            .then((res) => {
+              if (!res.ok) return { status: "NOT_ENROLLED" };
+              return res.json();
+            })
+            .then((data) => {
+              setEnrollmentStatus(data.status || "NOT_ENROLLED");
+            })
+            .catch(() => setEnrollmentStatus("NOT_ENROLLED"));
+        }
+      }
+    } catch (e) {
+      console.error("Lỗi kiểm tra enrollment:", e);
+    }
+  }, [courseId]);
 
   const tabs = [
     { id: "overview", label: "Tổng quan", icon: BookOpen },
@@ -314,6 +340,42 @@ export default function LessonPage() {
       }
     }, 800);
   };
+
+  // Màn hình thông báo nếu đơn hàng đang chờ duyệt
+  if (enrollmentStatus === "PENDING") {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full border border-slate-100 shadow-xl text-center space-y-6 animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+              <Hourglass size={32} className="animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-[#1A2B47]">
+                Đang chờ Admin duyệt ⏳
+              </h2>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Đơn thanh toán của bạn đã được ghi nhận. Admin khóa học đang kiểm tra và sẽ kích hoạt tài khoản học tập cho bạn sớm nhất!
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-100 text-left text-xs text-amber-900 space-y-1">
+              <p className="font-bold">📌 Lưu ý:</p>
+              <p className="text-amber-800">
+                Bạn đã đăng ký thành công nên không cần thanh toán lại. Thông tin truy cập sẽ hiển thị ngay khi Admin duyệt đơn.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/courses")}
+              className="w-full py-3.5 bg-[#1A2B47] hover:bg-[#F08A4B] text-white font-bold text-sm rounded-2xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={16} /> Quay lại danh sách khóa học
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

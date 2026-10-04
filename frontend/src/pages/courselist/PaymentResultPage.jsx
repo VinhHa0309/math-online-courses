@@ -40,7 +40,7 @@ export default function PaymentResultPage() {
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed px-2">
             {isSuccess
-              ? "Chúc mừng! Gói khóa học của bạn đã được kích hoạt thành công. Hãy bắt đầu học ngay bây giờ."
+              ? "Giao dịch của bạn đã được ghi nhận. Vui lòng chờ Admin xác nhận và duyệt đăng ký khóa học. Bạn sẽ được thông báo khi tài khoản được kích hoạt."
               : `Giao dịch không thành công hoặc đã bị hủy. (Lỗi: ${message || "Từ chối thanh toán"})`}
           </p>
         </div>
@@ -67,6 +67,15 @@ export default function PaymentResultPage() {
               Ví điện tử MoMo
             </span>
           </div>
+
+          {isSuccess && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-400 uppercase">Trạng thái</span>
+              <span className="font-bold text-amber-500 flex items-center gap-1.5">
+                ⏳ Chờ Admin duyệt
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Các nút hành động */}
@@ -77,7 +86,7 @@ export default function PaymentResultPage() {
               className="w-full py-4 bg-[#1A2B47] hover:bg-[#F08A4B] text-white font-black text-sm rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 group"
             >
               <BookOpen size={16} />
-              Vào học ngay
+              Xem danh sách khóa học
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
           ) : (

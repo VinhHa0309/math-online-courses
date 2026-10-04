@@ -81,8 +81,6 @@ export default function LoginPage() {
         role: result.role,
         avatarUrl: result.avatarUrl
       }));
-
-      alert("Đăng nhập thành công!");
       navigate("/");
       window.location.reload(); // Tải lại trang để cập nhật trạng thái Header
 
@@ -127,12 +125,8 @@ export default function LoginPage() {
         role: result.role,
         avatarUrl: result.avatarUrl
       }));
-
-      // Thông báo thành công và chuyển hướng về trang chủ
-      alert("Đăng nhập thành công!");
       navigate("/");
       window.location.reload(); // Tải lại trang để cập nhật trạng thái Header
-
     } catch (err) {
       setError(err.message);
     } finally {

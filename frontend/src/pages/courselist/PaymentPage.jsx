@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Star, BadgeCheck } from "lucide-react";
 import PaymentMethodSelector from "../../components/course/payment/PaymentMethodSelector";
 import OrderSummary from "../../components/course/payment/OrderSummary";
@@ -23,14 +23,13 @@ function SuccessModal({ onClose }) {
           Thanh toán thành công!
         </h3>
         <p className="text-sm text-slate-400 text-center leading-relaxed">
-          Chúc mừng! Gói Premium 12 tháng đã được kích hoạt. Hãy bắt đầu hành
-          trình chinh phục Toán học ngay hôm nay.
+          Đơn đăng ký khóa học đã được gửi thành công. Vui lòng chờ Admin duyệt để bắt đầu học!
         </p>
         <button
           onClick={onClose}
           className="w-full py-3.5 bg-[#1A2B47] text-white font-black text-sm rounded-2xl hover:bg-[#F08A4B] active:scale-95 transition-all"
         >
-          Bắt đầu học ngay 🚀
+          Quay lại danh sách khóa học
         </button>
       </div>
     </div>
@@ -50,6 +49,8 @@ function TrustBadge({ icon: Icon, label }) {
 // ── Trang thanh toán chính ────────────────────────────────
 export default function PaymentPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const courseIdParam = searchParams.get("courseId") || "1";
   const [showSuccess, setShowSuccess] = useState(false);
   const [activeMethod, setActiveMethod] = useState("qr"); // Mặc định chọn Chuyển khoản QR
   const [selectedWallet, setSelectedWallet] = useState("MoMo"); // Mặc định chọn MoMo
@@ -58,15 +59,36 @@ export default function PaymentPage() {
   // Tạo mã đơn hàng ngẫu nhiên khi tải trang
   const [orderId] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
 
+  const getLoggedInUser = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
+  };
+
   const handleConfirm = async (totalPrice) => {
+    const user = getLoggedInUser();
+    const courseId = Number(courseIdParam);
+
     if (activeMethod === "qr") {
-      // Giả lập hệ thống đang kiểm tra giao dịch chuyển khoản VietQR cá nhân
       setIsProcessing(true);
-      setTimeout(() => {
+      try {
+        // Tự động tạo pending enrollment nếu user đã đăng nhập
+        if (user && user.id) {
+          await fetch("http://localhost:8085/api/enrollments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user.id, courseId: courseId }),
+          });
+        }
+      } catch (e) {
+        console.error("Lỗi khi tạo enrollment VietQR:", e);
+      } finally {
         setIsProcessing(false);
-        // Chuyển sang trang thông báo kết quả thành công
         navigate(`/payment/result?resultCode=0&amount=${totalPrice}&orderId=${orderId}`);
-      }, 2000);
+      }
     } else if (activeMethod === "wallet" && selectedWallet === "MoMo") {
       setIsProcessing(true);
       try {
@@ -77,7 +99,9 @@ export default function PaymentPage() {
           },
           body: JSON.stringify({
             amount: totalPrice,
-            orderInfo: "Thanh toan mua Goi Premium 12 thang",
+            orderInfo: `Thanh toan khoa hoc #${courseId}`,
+            userId: user ? user.id : null,
+            courseId: courseId,
           }),
         });
 
@@ -97,13 +121,24 @@ export default function PaymentPage() {
       }
     } else {
       // Mock hành vi thành công cho phương thức khác (thẻ tín dụng)
+      if (user && user.id) {
+        try {
+          await fetch("http://localhost:8085/api/enrollments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user.id, courseId: courseId }),
+          });
+        } catch (e) {
+          console.error("Lỗi tạo enrollment:", e);
+        }
+      }
       setShowSuccess(true);
     }
   };
 
   const handleClose = () => {
     setShowSuccess(false);
-    navigate("/courses/learn");
+    navigate("/courses");
   };
 
   return (

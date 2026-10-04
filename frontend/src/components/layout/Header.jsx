@@ -44,8 +44,21 @@ export default function Header() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const location = useLocation();
 
-  // State lưu trữ thông tin user đã đăng nhập
+  // State lưu trữ thông tin user đã đăng nhập & danh sách thông báo
   const [currentUser, setCurrentUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+
+  const fetchNotifications = (userId) => {
+    if (!userId) return;
+    fetch(`http://localhost:8085/api/notifications/user/${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNotifications(data);
+        }
+      })
+      .catch((err) => console.error("Lỗi lấy thông báo:", err));
+  };
 
   // Đọc thông tin user từ localStorage khi Header render & lắng nghe sự kiện userUpdated
   useEffect(() => {
@@ -53,12 +66,17 @@ export default function Header() {
       const userStr = localStorage.getItem("user");
       if (userStr) {
         try {
-          setCurrentUser(JSON.parse(userStr));
+          const user = JSON.parse(userStr);
+          setCurrentUser(user);
+          if (user && user.id) {
+            fetchNotifications(user.id);
+          }
         } catch (e) {
           console.error("Lỗi parse user info từ localStorage", e);
         }
       } else {
         setCurrentUser(null);
+        setNotifications([]);
       }
     };
 
@@ -67,12 +85,47 @@ export default function Header() {
     return () => window.removeEventListener("userUpdated", loadUser);
   }, []);
 
+  // Tự động làm mới thông báo định kỳ mỗi 10 giây nếu đã đăng nhập
+  useEffect(() => {
+    if (!currentUser || !currentUser.id) return;
+    const interval = setInterval(() => {
+      fetchNotifications(currentUser.id);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
+  const handleMarkAllRead = () => {
+    if (!currentUser || !currentUser.id) return;
+    fetch(`http://localhost:8085/api/notifications/user/${currentUser.id}/read-all`, {
+      method: "PATCH",
+    })
+      .then(() => {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
+      })
+      .catch((err) => console.error("Lỗi đánh dấu đã đọc:", err));
+  };
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.read && !notif.isRead) {
+      fetch(`http://localhost:8085/api/notifications/${notif.id}/read`, { method: "PATCH" })
+        .catch(() => null);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, read: true, isRead: true } : n))
+      );
+    }
+    setIsNotifOpen(false);
+    if (notif.courseId) {
+      navigate(`/courses/${notif.courseId}/learn`);
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.read && !n.isRead).length;
+
   // Hàm xử lý Đăng xuất
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setCurrentUser(null);
-    alert("Đã đăng xuất tài khoản!");
     navigate("/");
     window.location.reload();
   };
@@ -135,56 +188,78 @@ export default function Header() {
                   }`}
               >
                 <Bell className="w-[18px] h-[18px]" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F08A4B] ring-2 ring-white" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#F08A4B] text-white text-[10px] font-black rounded-full ring-2 ring-white flex items-center justify-center shadow-xs">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
 
               {/* Dropdown notifications */}
               {isNotifOpen && (
-                <div className="absolute right-0 mt-3 w-80 bg-white border border-[#F2EDE6] rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-[#F2EDE6] rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-4 border-b border-[#F2EDE6] flex items-center justify-between">
-                    <span className="font-outfit font-bold text-sm text-[#1A2B47]">Thông báo</span>
-                    <button className="text-xs text-[#F08A4B] font-semibold hover:underline">
-                      Đọc tất cả
-                    </button>
-                  </div>
-
-                  <div className="max-h-72 overflow-y-auto divide-y divide-[#F8FAFC]">
-                    {MOCK_NOTIFICATIONS.map((n) => (
-                      <div
-                        key={n.id}
-                        className={`p-4 hover:bg-[#F8FAFC] transition-colors flex gap-3 ${!n.isRead ? "bg-[#FFFDFB]/80" : ""
-                          }`}
+                    <div className="flex items-center gap-2">
+                      <span className="font-outfit font-bold text-sm text-[#1A2B47]">Thông báo</span>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">
+                          {unreadCount} mới
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="text-xs text-[#F08A4B] font-semibold hover:underline"
                       >
-                        <div className="mt-1.5 shrink-0">
-                          <span className={`block w-2.5 h-2.5 rounded-full ${n.type === "success"
-                            ? "bg-emerald-500"
-                            : n.type === "info"
-                              ? "bg-blue-500"
-                              : "bg-orange-500"
-                            }`} />
-                        </div>
-
-                        <div className="space-y-1 flex-1">
-                          <div className="flex justify-between items-start gap-1">
-                            <h4 className="text-xs font-bold text-[#1A2B47] leading-snug">
-                              {n.title}
-                            </h4>
-                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                              {n.time}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-500 leading-normal font-dmsans">
-                            {n.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                        Đọc tất cả
+                      </button>
+                    )}
                   </div>
 
-                  <div className="p-3 bg-[#F8FAFC] text-center border-t border-[#F2EDE6]">
-                    <button className="text-xs font-semibold text-[#1A2B47] hover:text-[#F08A4B] transition-colors">
-                      Xem tất cả thông báo
-                    </button>
+                  <div className="max-h-80 overflow-y-auto divide-y divide-[#F8FAFC]">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-400">
+                        Chưa có thông báo nào.
+                      </div>
+                    ) : (
+                      notifications.map((n) => {
+                        const isUnread = !n.read && !n.isRead;
+                        return (
+                          <div
+                            key={n.id}
+                            onClick={() => handleNotificationClick(n)}
+                            className={`p-4 hover:bg-[#F8FAFC] cursor-pointer transition-colors flex gap-3 ${isUnread ? "bg-[#FFF8F3]" : ""
+                              }`}
+                          >
+                            <div className="mt-1.5 shrink-0">
+                              <span className={`block w-2.5 h-2.5 rounded-full ${n.type === "success"
+                                ? "bg-emerald-500"
+                                : n.type === "warning"
+                                  ? "bg-rose-500"
+                                  : "bg-blue-500"
+                                }`} />
+                            </div>
+
+                            <div className="space-y-1 flex-1">
+                              <div className="flex justify-between items-start gap-1">
+                                <h4 className={`text-xs font-bold leading-snug ${isUnread ? "text-[#1A2B47]" : "text-slate-600"}`}>
+                                  {n.title}
+                                </h4>
+                                {n.createdAt && (
+                                  <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-2">
+                                    {new Date(n.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-500 leading-normal font-dmsans">
+                                {n.description}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               )}
