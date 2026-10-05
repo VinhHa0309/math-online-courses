@@ -7,12 +7,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import com.mathcourses.model.User;
+import com.mathcourses.repository.UserRepository;
+
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class CourseController {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // GET /api/courses → trả về danh sách tất cả khóa học
     @GetMapping("/api/courses")
@@ -24,5 +30,11 @@ public class CourseController {
     @GetMapping("/api/courses/{id}")
     public Course getCourseById(@PathVariable Long id) {
         return courseRepository.findById(id).orElseThrow();
+    }
+
+    // GET /api/instructors → trả về danh sách Ban Lãnh Đạo / Admin / Giảng Viên từ Database
+    @GetMapping("/api/instructors")
+    public List<User> getInstructors() {
+        return userRepository.findByRoleIn(List.of("ADMIN", "INSTRUCTOR", "admin", "instructor"));
     }
 }

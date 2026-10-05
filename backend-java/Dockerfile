@@ -2,7 +2,7 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy mã nguồn và file settings.xml cấu hình Mirror
+# Copy toàn bộ mã nguồn và cấu hình
 COPY . .
 RUN mvn clean package -s settings.xml -DskipTests
 

@@ -57,10 +57,7 @@ export default function Hero() {
           </div>
 
           {/* Title */}
-          <h1
-            className="text-4xl sm:text-5xl font-extrabold text-[#F2EDE6] leading-tight"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-[#F2EDE6] leading-tight font-outfit">
             Thành thạo ngôn ngữ
             <br />
             của <span className="text-[#F08A4B]">Vũ Trụ</span>
@@ -100,10 +97,7 @@ export default function Hero() {
                 key={s.label}
                 className={`pr-8 ${i > 0 ? "pl-8 border-l border-white/10" : ""}`}
               >
-                <p
-                  className="text-2xl sm:text-3xl font-bold text-[#F2EDE6]"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
-                >
+                <p className="text-2xl sm:text-3xl font-extrabold text-[#F2EDE6] font-outfit">
                   {s.num}
                 </p>
                 <p className="text-[10px] font-semibold text-[#4A5A6B] uppercase tracking-widest mt-1">

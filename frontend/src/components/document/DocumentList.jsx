@@ -7,34 +7,14 @@ export default function DocumentList({
   currentPage,
   setCurrentPage
 }) {
-  // Nếu tổng số tài liệu tìm thấy ít hơn 6, hiển thị chính xác bấy nhiêu và đặt số trang là 1
-  const isSmallList = filteredDocs.length < 6;
-  const totalPages = isSmallList ? 1 : 24;
+  const DOCS_PER_PAGE = 6;
+  const totalPages = Math.max(1, Math.ceil(filteredDocs.length / DOCS_PER_PAGE));
 
   // Lấy danh sách tài liệu hiển thị cho trang hiện tại
   const getPaginatedDocs = () => {
     if (filteredDocs.length === 0) return [];
-    
-    if (isSmallList) {
-      return filteredDocs;
-    }
-
-    const result = [];
-    const len = filteredDocs.length;
-    
-    // Mỗi trang hiển thị 6 tài liệu được xoay vòng để tạo cảm giác phong phú
-    for (let i = 0; i < 6; i++) {
-      const index = (i + (currentPage - 1) * 2) % len;
-      const originalDoc = filteredDocs[index];
-      
-      result.push({
-        ...originalDoc,
-        id: `${originalDoc.id}-${currentPage}-${i}`,
-        // Tăng/giảm số lượt xem/tải một cách ngẫu nhiên dựa trên trang để trông tự nhiên
-        views: `${(parseFloat(originalDoc.views) * (1 + ((currentPage * 7) % 40) / 100)).toFixed(1)}k`,
-      });
-    }
-    return result;
+    const start = (currentPage - 1) * DOCS_PER_PAGE;
+    return filteredDocs.slice(start, start + DOCS_PER_PAGE);
   };
 
   const currentDocs = getPaginatedDocs();

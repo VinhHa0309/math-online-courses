@@ -57,6 +57,13 @@ export default function CourseListPage() {
   // ✅ Đặt thành true để test empty state, false để hiện khóa học thật
   const forceEmpty = false; // ← đổi lại false khi test xong
 
+  const COURSES_PER_PAGE = 4;
+  const totalPages = Math.max(1, Math.ceil(courses.length / COURSES_PER_PAGE));
+  const paginatedCourses = courses.slice(
+    (currentPage - 1) * COURSES_PER_PAGE,
+    currentPage * COURSES_PER_PAGE
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 min-h-screen bg-white">
       <div className="flex flex-col lg:flex-row gap-10">
@@ -167,7 +174,7 @@ export default function CourseListPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {courses.map((course) => (
+              {paginatedCourses.map((course) => (
                 <CourseCard
                   key={course.id}
                   {...course}
@@ -180,8 +187,11 @@ export default function CourseListPage() {
           {/* ── Thanh Phân trang (Pagination) ── */}
           <Pagination
             currentPage={currentPage}
-            totalPages={12}
-            onPageChange={setCurrentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           />
         </div>
       </div>

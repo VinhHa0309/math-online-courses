@@ -51,14 +51,16 @@ export default function RegisterPage() {
       }
 
       const result = JSON.parse(data);
+      const userObj = result.user || result;
 
       // Lưu token đăng nhập tự động sau khi đăng ký thành công
-      localStorage.setItem("token", result.token);
+      localStorage.setItem("token", result.accessToken || result.token || "");
       localStorage.setItem("user", JSON.stringify({
-        id: result.id,
-        fullName: result.fullName,
-        email: result.email,
-        role: result.role
+        id: userObj.id,
+        fullName: userObj.fullName || userObj.name,
+        email: userObj.email,
+        role: userObj.role || "USER",
+        avatarUrl: userObj.avatarUrl || userObj.avatar || ""
       }));
 
       alert("Đăng ký tài khoản thành công!");

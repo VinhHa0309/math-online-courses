@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,5 +60,35 @@ public class EnrollmentController {
 
         Enrollment saved = enrollmentRepository.save(enrollment);
         return ResponseEntity.status(HttpStatus.CREATED).body(new EnrollmentDTO(saved));
+    }
+
+    /**
+     * GET /api/enrollments/check?userId=1&courseId=5
+     * Kiểm tra trạng thái đăng ký khóa học của user.
+     * Trả về enrollment nếu có, hoặc 404 nếu chưa đăng ký.
+     */
+    @GetMapping("/check")
+    public ResponseEntity<?> checkEnrollment(
+            @RequestParam Long userId,
+            @RequestParam Long courseId) {
+        Optional<Enrollment> enrollment = enrollmentRepository.findByUserIdAndCourseId(userId, courseId);
+        if (enrollment.isPresent()) {
+            return ResponseEntity.ok(new EnrollmentDTO(enrollment.get()));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("status", "NOT_ENROLLED", "message", "Chưa đăng ký khóa học này"));
+    }
+
+    /**
+     * GET /api/enrollments/user/{userId}
+     * Lấy danh sách tất cả khóa học mà user đã đăng ký (kèm trạng thái).
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getUserEnrollments(@PathVariable Long userId) {
+        List<Enrollment> enrollments = enrollmentRepository.findByUserId(userId);
+        List<EnrollmentDTO> dtos = enrollments.stream()
+                .map(EnrollmentDTO::new)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 }

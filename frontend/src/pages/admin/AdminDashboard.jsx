@@ -169,9 +169,15 @@ export default function AdminDashboard() {
       }
 
       // 2. Gửi request tạo khóa học sang Backend Spring Boot
+      const token = localStorage.getItem("token");
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("http://localhost:8085/api/admin/courses", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           title: newCourseName,
           description: courseDescription || "Khóa học toán chuyên sâu cùng Cô Thu Sương",
@@ -185,7 +191,7 @@ export default function AdminDashboard() {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
-        throw new Error(errText || "Không thể tạo khóa học trên server!");
+        throw new Error(errText || `Server phản hồi lỗi (${res.status})!`);
       }
 
       const createdCourse = await res.json();

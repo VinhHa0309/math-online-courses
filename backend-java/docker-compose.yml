@@ -1,0 +1,28 @@
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: math_courses_db_container
+    restart: always
+    environment:
+      POSTGRES_DB: math_courses_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend-java:
+    build: .
+    container_name: math_courses_backend_container
+    ports:
+      - "8085:8085"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/math_courses_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+volumes:
+  postgres_data:

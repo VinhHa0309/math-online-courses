@@ -269,17 +269,28 @@ export default function Header() {
             {currentUser ? (
               // HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP
               <div className="flex items-center gap-2.5 ml-2">
-                {/* Nút Admin Portal nếu vai trò là ADMIN */}
-                {(currentUser.role === "ADMIN" || currentUser.role === "INSTRUCTOR") && (
-                  <Link
-                    to="/admin"
-                    className="hidden sm:flex items-center gap-1.5 bg-[#0B132B] text-white hover:bg-[#1A2B47] text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs"
-                    title="Trang quản trị Admin"
-                  >
-                    <Shield size={14} className="text-orange-400" />
-                    <span>Admin Portal</span>
-                  </Link>
-                )}
+                {/* Nút Dashboard Giáo Viên / Admin Portal */}
+                {(() => {
+                  const roleUpper = (currentUser.role || "").toUpperCase();
+                  const isTeacherOrAdmin =
+                    roleUpper === "ADMIN" ||
+                    roleUpper === "INSTRUCTOR" ||
+                    roleUpper === "TEACHER" ||
+                    (currentUser.email && (currentUser.email.toLowerCase().includes("admin") || currentUser.email.toLowerCase().includes("suongmath")));
+
+                  if (!isTeacherOrAdmin) return null;
+
+                  return (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1.5 bg-[#0B132B] hover:bg-[#1A2B47] text-white text-xs font-extrabold px-3 py-2 rounded-xl transition-all shadow-sm border border-slate-800"
+                      title="Vào Trang Quản Trị / Dashboard"
+                    >
+                      <Shield size={15} className="text-amber-400" />
+                      <span>Dashboard</span>
+                    </Link>
+                  );
+                })()}
 
                 {/* Icon tròn đại diện cho User (Avatar) - Bấm vào chuyển hướng tới trang cá nhân /profile */}
                 <Link

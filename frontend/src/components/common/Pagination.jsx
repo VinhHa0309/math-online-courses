@@ -3,41 +3,53 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Pagination({
   currentPage = 1,
-  totalPages = 12,
+  totalPages = 1,
   onPageChange = () => {},
+  hideOnSinglePage = true,
 }) {
-  // Hàm tạo danh sách số trang hiển thị thông minh (có dấu ...)
+  if (hideOnSinglePage && totalPages <= 1) {
+    return null;
+  }
+
+  // Hàm tạo danh sách số trang hiển thị thông minh (không bị thừa ... khi tổng số trang ít)
   const getPages = () => {
+    // Nếu tổng số trang ít (<= 7), hiển thị đầy đủ các số trang
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
     const pages = [];
-    
-    // Luôn thêm trang đầu
+
+    // Luôn có trang 1
     pages.push(1);
-    
+
     if (currentPage > 3) {
       pages.push("...");
     }
-    
+
     // Các trang xung quanh trang hiện tại
     const start = Math.max(2, currentPage - 1);
     const end = Math.min(totalPages - 1, currentPage + 1);
-    
+
     for (let i = start; i <= end; i++) {
       if (!pages.includes(i)) {
         pages.push(i);
       }
     }
-    
+
     if (currentPage < totalPages - 2) {
       pages.push("...");
     }
-    
-    // Luôn thêm trang cuối
+
+    // Luôn có trang cuối
     if (totalPages > 1 && !pages.includes(totalPages)) {
       pages.push(totalPages);
     }
-    
+
     return pages;
   };
+
+  const pages = getPages();
 
   return (
     <div className="flex justify-center items-center gap-2 pt-10 border-t border-slate-50">
@@ -56,7 +68,7 @@ export default function Pagination({
       </button>
 
       {/* Các số trang */}
-      {getPages().map((page, index) => {
+      {pages.map((page, index) => {
         if (page === "...") {
           return (
             <span key={`dots-${index}`} className="text-slate-300 px-1 font-bold select-none">

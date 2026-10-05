@@ -1,6 +1,6 @@
 package com.mathcourses.model;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; 
 
 @Entity
 @Table(name = "users")
@@ -9,7 +9,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "full_name", nullable = false, columnDefinition = "nvarchar(100)")
+    @Column(name = "name", length = 100)
     private String fullName;
 
     @Column(nullable = false, unique = true, length = 150)
@@ -17,12 +17,21 @@ public class User {
 
     @Column(nullable = false, length = 255)
     private String password;
-
-    @Column(nullable = false, length = 20)
+ 
+    @Column(name = "role", length = 20)
     private String role; // Ví dụ: "USER", "ADMIN"
 
-    @Column(name = "avatar_url", length = 500)
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
     private String avatarUrl;
+
+    @Column(name = "bio", length = 500)
+    private String bio;
+
+    @Column(name = "location", length = 100)
+    private String location;
+
+    @Column(name = "website", length = 150)
+    private String website;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -59,6 +68,7 @@ public class User {
         this.email = email;
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String getPassword() {
         return password;
     }
@@ -89,5 +99,29 @@ public class User {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
     }
 }

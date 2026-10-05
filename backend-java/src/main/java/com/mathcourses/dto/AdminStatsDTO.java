@@ -14,7 +14,6 @@ public class AdminStatsDTO {
         this.pendingApprovals = pendingApprovals;
         this.totalRevenue = totalRevenue;
     }
-
     // --- GETTERS & SETTERS ---
     public long getTotalStudents() { return totalStudents; }
     public void setTotalStudents(long totalStudents) { this.totalStudents = totalStudents; }
