@@ -33,7 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Cho phép các API công khai, Admin API và Swagger UI truy cập
                 .requestMatchers(
-                    "/api/auth/**", "/api/users/**", "/api/health", "/api/courses/**", "/api/instructors/**", "/api/instructors", "/api/payment/**", 
+                    "/", "/api/auth/**", "/api/users/**", "/api/health", "/api/courses/**", "/api/instructors/**", "/api/instructors", "/api/payment/**", 
                     "/api/notifications/**", "/api/enrollments/**", "/api/contact/**",
                     "/api/admin/**",
                     "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
