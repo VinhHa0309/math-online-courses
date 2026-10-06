@@ -41,15 +41,20 @@ function PriceRow({ label, value, isDiscount, isBold }) {
   );
 }
 
-export default function OrderSummary({ course, onConfirm, isProcessing }) {
+export default function OrderSummary({
+  course,
+  appliedCode,
+  setAppliedCode,
+  onConfirm,
+  isProcessing,
+}) {
   const [promoCode, setPromoCode] = useState("");
-  const [appliedCode, setAppliedCode] = useState("");
   const [isApplying, setIsApplying] = useState(false);
   const [promoError, setPromoError] = useState("");
 
   // Lấy thông tin giá thực tế từ Database
-  const basePrice = course ? (course.price || 0) : 1000000;
-  const originalPrice = course ? (course.originalPrice || basePrice) : 1200000;
+  const basePrice = course ? (course.price || 0) : 0;
+  const originalPrice = course ? (course.originalPrice || basePrice) : basePrice;
   const discountAmount = Math.max(0, originalPrice - basePrice);
   const promoDiscount = appliedCode ? 50000 : 0;
   
@@ -63,14 +68,14 @@ export default function OrderSummary({ course, onConfirm, isProcessing }) {
 
     setTimeout(() => {
       if (promoCode.toUpperCase() === "MATH20") {
-        setAppliedCode(promoCode);
+        setAppliedCode("MATH20");
         setPromoError("");
       } else {
         setPromoError("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
         setAppliedCode("");
       }
       setIsApplying(false);
-    }, 500);
+    }, 300);
   };
 
   return (
@@ -133,7 +138,7 @@ export default function OrderSummary({ course, onConfirm, isProcessing }) {
           <button
             onClick={handleApplyPromo}
             disabled={isApplying}
-            className="px-4 py-2.5 bg-[#1A2B47] text-white text-sm font-bold rounded-xl hover:bg-[#F08A4B] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-[#1A2B47] text-white text-sm font-bold rounded-xl hover:bg-[#F08A4B] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
           >
             {isApplying ? (
               <Loader2 size={14} className="animate-spin" />

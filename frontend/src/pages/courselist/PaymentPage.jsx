@@ -53,6 +53,7 @@ export default function PaymentPage() {
   
   const [course, setCourse] = useState(null);
   const [loadingCourse, setLoadingCourse] = useState(true);
+  const [appliedCode, setAppliedCode] = useState("");
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [activeMethod, setActiveMethod] = useState("qr");
@@ -82,8 +83,10 @@ export default function PaymentPage() {
     }
   }, [courseIdParam]);
 
-  // Tính toán số tiền thực tế của khóa học
-  const courseAmount = course ? (course.price || 0) : 0;
+  // Tính toán số tiền thực tế đã áp dụng giảm giá (cho cả VietQR lẫn MoMo & Tóm tắt)
+  const baseAmount = course ? (course.price || 0) : 0;
+  const promoDiscount = appliedCode ? 50000 : 0;
+  const finalAmount = Math.max(0, baseAmount - promoDiscount);
 
   const getLoggedInUser = () => {
     try {
@@ -94,10 +97,10 @@ export default function PaymentPage() {
     }
   };
 
-  const handleConfirm = async (finalAmount) => {
+  const handleConfirm = async (totalPriceFromSummary) => {
     const user = getLoggedInUser();
     const courseId = Number(courseIdParam);
-    const amountToPay = finalAmount || courseAmount;
+    const amountToPay = totalPriceFromSummary !== undefined ? totalPriceFromSummary : finalAmount;
 
     if (activeMethod === "qr") {
       setIsProcessing(true);
@@ -204,7 +207,7 @@ export default function PaymentPage() {
                   setActiveMethod={setActiveMethod}
                   selectedWallet={selectedWallet}
                   setSelectedWallet={setSelectedWallet}
-                  amount={courseAmount} // Truyền ĐÚNG số tiền thực tế của khóa học từ DB
+                  amount={finalAmount} // Truyền ĐÚNG số tiền ĐÃ GIẢM GÍA sang VietQR
                   orderId={orderId}
                 />
               </div>
@@ -220,6 +223,8 @@ export default function PaymentPage() {
 
             <OrderSummary 
               course={course}
+              appliedCode={appliedCode}
+              setAppliedCode={setAppliedCode}
               onConfirm={handleConfirm} 
               isProcessing={isProcessing} 
             />
