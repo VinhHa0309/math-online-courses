@@ -177,7 +177,7 @@ function QRForm({ amount, orderId }) {
         </div>
         <div className="flex justify-between">
           <span className="text-slate-400">Số tiền:</span>
-          <span className="font-bold text-orange-500">{amount.toLocaleString("vi-VN")}đ</span>
+          <span className="font-bold text-orange-500">{(amount || 0).toLocaleString("vi-VN")}đ</span>
         </div>
         <div className="flex justify-between">
           <span className="text-slate-400">Nội dung chuyển khoản:</span>

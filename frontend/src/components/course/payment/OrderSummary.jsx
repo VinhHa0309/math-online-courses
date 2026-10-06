@@ -1,25 +1,17 @@
 import { useState } from "react";
 import { CheckCircle2, Lock, Tag, Loader2 } from "lucide-react";
 
-// ── Danh sách lợi ích gói Premium ────────────────────────
+// ── Danh sách lợi ích gói học ────────────────────────
 const BENEFITS = [
-  "Học không giới hạn 50+ khóa học chuyên sâu",
+  "Học không giới hạn toàn bộ bài giảng khóa học",
   "Giải bài 24/7 với Trợ lý AI & Chuyên gia",
   "Tải tài liệu PDF và đề thi độc quyền",
-  "Chứng chỉ hoàn thành được tổ chức quốc tế công nhận",
+  "Chứng chỉ hoàn thành được công nhận",
 ];
-
-// ── Dữ liệu đơn hàng (có thể nhận qua props sau) ─────────
-const ORDER_DATA = {
-  name: "Gói Premium 12 tháng",
-  subtitle: "Truy cập toàn bộ khóa học chuyên sâu",
-  originalPrice: 2400000,
-  discountAmount: 480000,
-  discountLabel: "Ưu đãi học sinh, sinh viên",
-};
 
 // ── Format tiền Việt ──────────────────────────────────────
 function formatVND(amount) {
+  if (amount === undefined || amount === null) return "0đ";
   return amount.toLocaleString("vi-VN") + "đ";
 }
 
@@ -49,16 +41,19 @@ function PriceRow({ label, value, isDiscount, isBold }) {
   );
 }
 
-export default function OrderSummary({ onConfirm, isProcessing }) {
+export default function OrderSummary({ course, onConfirm, isProcessing }) {
   const [promoCode, setPromoCode] = useState("");
   const [appliedCode, setAppliedCode] = useState("");
   const [isApplying, setIsApplying] = useState(false);
   const [promoError, setPromoError] = useState("");
 
-  const totalPrice =
-    ORDER_DATA.originalPrice -
-    ORDER_DATA.discountAmount -
-    (appliedCode ? 50000 : 0);
+  // Lấy thông tin giá thực tế từ Database
+  const basePrice = course ? (course.price || 0) : 1000000;
+  const originalPrice = course ? (course.originalPrice || basePrice) : 1200000;
+  const discountAmount = Math.max(0, originalPrice - basePrice);
+  const promoDiscount = appliedCode ? 50000 : 0;
+  
+  const totalPrice = Math.max(0, basePrice - promoDiscount);
 
   // ── Xử lý áp dụng mã giảm giá ────────────────────────
   const handleApplyPromo = () => {
@@ -66,7 +61,6 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
     setIsApplying(true);
     setPromoError("");
 
-    // Giả lập API call
     setTimeout(() => {
       if (promoCode.toUpperCase() === "MATH20") {
         setAppliedCode(promoCode);
@@ -76,7 +70,7 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
         setAppliedCode("");
       }
       setIsApplying(false);
-    }, 800);
+    }, 500);
   };
 
   return (
@@ -84,16 +78,18 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
       {/* Tiêu đề */}
       <h3 className="text-base font-black text-[#1A2B47]">Tóm tắt đơn hàng</h3>
 
-      {/* Thông tin gói */}
+      {/* Thông tin khóa học từ Database */}
       <div className="bg-slate-50 rounded-xl p-4 flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-black text-[#1A2B47]">
-            {ORDER_DATA.name}
+          <p className="text-sm font-black text-[#1A2B47] line-clamp-2">
+            {course ? course.title : "Đang tải thông tin khóa học..."}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">{ORDER_DATA.subtitle}</p>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {course ? `Chuyên đề ${course.category || "Toán THPT"} ${course.grade ? `• Lớp ${course.grade}` : ""}` : "Khóa học toán nâng cao"}
+          </p>
         </div>
         <span className="text-sm font-black text-[#1A2B47] whitespace-nowrap">
-          {formatVND(ORDER_DATA.originalPrice)}
+          {formatVND(originalPrice)}
         </span>
       </div>
 
@@ -161,17 +157,19 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
       {/* Dòng kẻ phân cách */}
       <hr className="border-slate-100" />
 
-      {/* Chi tiết giá */}
+      {/* Chi tiết giá từ Database */}
       <div className="space-y-3">
         <PriceRow
           label="Giá gốc"
-          value={formatVND(ORDER_DATA.originalPrice)}
+          value={formatVND(originalPrice)}
         />
-        <PriceRow
-          label={ORDER_DATA.discountLabel}
-          value={formatVND(ORDER_DATA.discountAmount)}
-          isDiscount
-        />
+        {discountAmount > 0 && (
+          <PriceRow
+            label="Ưu đãi khóa học"
+            value={formatVND(discountAmount)}
+            isDiscount
+          />
+        )}
         {appliedCode && (
           <PriceRow
             label={`Mã ${appliedCode.toUpperCase()}`}
@@ -183,7 +181,7 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
         <div className="flex items-end justify-between">
           <span className="text-sm font-black text-[#1A2B47]">Tổng tiền</span>
           <div className="text-right">
-            <p className="text-xl font-black text-[#1A2B47]">
+            <p className="text-xl font-black text-[#F08A4B]">
               {formatVND(totalPrice)}
             </p>
             <p className="text-[10px] text-slate-400">
@@ -197,7 +195,7 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
       <button
         onClick={() => onConfirm(totalPrice)}
         disabled={isProcessing}
-        className="w-full py-4 bg-[#1A2B47] text-white font-black text-sm rounded-2xl hover:bg-[#F08A4B] active:scale-95 transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 group disabled:opacity-50"
+        className="w-full py-4 bg-[#1A2B47] text-white font-black text-sm rounded-2xl hover:bg-[#F08A4B] active:scale-95 transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 group disabled:opacity-50 cursor-pointer"
       >
         {isProcessing ? (
           <Loader2 size={16} className="animate-spin" />
@@ -207,7 +205,7 @@ export default function OrderSummary({ onConfirm, isProcessing }) {
             className="group-hover:rotate-12 transition-transform"
           />
         )}
-        {isProcessing ? "Đang kết nối MoMo..." : "Xác nhận thanh toán"}
+        {isProcessing ? "Đang xử lý..." : `Thanh toán ${formatVND(totalPrice)}`}
       </button>
 
       {/* Ghi chú bảo mật */}

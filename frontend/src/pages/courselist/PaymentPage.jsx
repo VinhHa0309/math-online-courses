@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ShieldCheck, Star, BadgeCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Star, BadgeCheck, Loader2 } from "lucide-react";
 import PaymentMethodSelector from "../../components/course/payment/PaymentMethodSelector";
 import OrderSummary from "../../components/course/payment/OrderSummary";
 import InvoiceInfo from "../../components/course/payment/InvoiceInfo";
@@ -10,12 +10,10 @@ import { API_BASE_URL } from "../../config/api";
 function SuccessModal({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Nền mờ */}
       <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      {/* Khung modal */}
       <div className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center gap-4 animate-in zoom-in-95 fade-in duration-300">
         <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
           <BadgeCheck size={36} className="text-green-500" />
@@ -52,13 +50,40 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const courseIdParam = searchParams.get("courseId") || "1";
+  
+  const [course, setCourse] = useState(null);
+  const [loadingCourse, setLoadingCourse] = useState(true);
+
   const [showSuccess, setShowSuccess] = useState(false);
-  const [activeMethod, setActiveMethod] = useState("qr"); // Mặc định chọn Chuyển khoản QR
-  const [selectedWallet, setSelectedWallet] = useState("MoMo"); // Mặc định chọn MoMo
+  const [activeMethod, setActiveMethod] = useState("qr");
+  const [selectedWallet, setSelectedWallet] = useState("MoMo");
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Tạo mã đơn hàng ngẫu nhiên khi tải trang
   const [orderId] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
+
+  // 1. Tải thông tin khóa học THỰC TẾ từ Database Backend theo courseId
+  useEffect(() => {
+    if (courseIdParam) {
+      setLoadingCourse(true);
+      fetch(`${API_BASE_URL}/api/courses/${courseIdParam}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Không tìm thấy khóa học");
+          return res.json();
+        })
+        .then((data) => {
+          setCourse(data);
+          setLoadingCourse(false);
+        })
+        .catch((err) => {
+          console.error("Lỗi khi tải thông tin khóa học:", err);
+          setLoadingCourse(false);
+        });
+    }
+  }, [courseIdParam]);
+
+  // Tính toán số tiền thực tế của khóa học
+  const courseAmount = course ? (course.price || 0) : 0;
 
   const getLoggedInUser = () => {
     try {
@@ -69,14 +94,14 @@ export default function PaymentPage() {
     }
   };
 
-  const handleConfirm = async (totalPrice) => {
+  const handleConfirm = async (finalAmount) => {
     const user = getLoggedInUser();
     const courseId = Number(courseIdParam);
+    const amountToPay = finalAmount || courseAmount;
 
     if (activeMethod === "qr") {
       setIsProcessing(true);
       try {
-        // Tự động tạo pending enrollment nếu user đã đăng nhập
         if (user && user.id) {
           await fetch(`${API_BASE_URL}/api/enrollments`, {
             method: "POST",
@@ -88,7 +113,7 @@ export default function PaymentPage() {
         console.error("Lỗi khi tạo enrollment VietQR:", e);
       } finally {
         setIsProcessing(false);
-        navigate(`/payment/result?resultCode=0&amount=${totalPrice}&orderId=${orderId}`);
+        navigate(`/payment/result?resultCode=0&amount=${amountToPay}&orderId=${orderId}`);
       }
     } else if (activeMethod === "wallet" && selectedWallet === "MoMo") {
       setIsProcessing(true);
@@ -99,7 +124,7 @@ export default function PaymentPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: totalPrice,
+            amount: amountToPay,
             orderInfo: `Thanh toan khoa hoc #${courseId}`,
             userId: user ? user.id : null,
             courseId: courseId,
@@ -109,7 +134,6 @@ export default function PaymentPage() {
         const data = await response.json();
 
         if (data && data.payUrl) {
-          // Chuyển hướng đến cổng thanh toán MoMo thật
           window.location.href = data.payUrl;
         } else {
           alert("Không nhận được link thanh toán từ hệ thống MoMo. Hãy thử lại!");
@@ -121,7 +145,6 @@ export default function PaymentPage() {
         setIsProcessing(false);
       }
     } else {
-      // Mock hành vi thành công cho phương thức khác (thẻ tín dụng)
       if (user && user.id) {
         try {
           await fetch(`${API_BASE_URL}/api/enrollments`, {
@@ -144,63 +167,64 @@ export default function PaymentPage() {
 
   return (
     <>
-      {/* Modal thành công */}
       {showSuccess && <SuccessModal onClose={handleClose} />}
 
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 min-h-screen bg-white">
-        {/* ── Breadcrumb / Nút quay lại ── */}
         <button
           onClick={() => navigate("/courses")}
-          className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-[#1A2B47] transition-colors mb-8 group"
+          className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-[#1A2B47] transition-colors mb-8 group cursor-pointer"
         >
           <ArrowLeft
             size={16}
             className="group-hover:-translate-x-1 transition-transform"
           />
-          Quay lại trang gói học
+          Quay lại trang danh sách khóa học
         </button>
 
-        {/* ── Tiêu đề trang ── */}
         <div className="mb-8">
           <h1 className="text-3xl font-black text-[#1A2B47] tracking-tight">
             Thanh toán
           </h1>
           <p className="text-slate-400 text-sm mt-1.5">
-            Hoàn tất đăng ký để bắt đầu hành trình chinh phục Toán học cùng
-            chúng tôi.
+            Hoàn tất đăng ký để bắt đầu hành trình chinh phục Toán học cùng SuongMath.
           </p>
         </div>
 
-        {/* ── Layout 2 cột ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 items-start">
-          {/* ── Cột trái: Phương thức & Hóa đơn ── */}
-          <div className="space-y-6">
-            {/* Card phương thức thanh toán */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-              <PaymentMethodSelector
-                activeMethod={activeMethod}
-                setActiveMethod={setActiveMethod}
-                selectedWallet={selectedWallet}
-                setSelectedWallet={setSelectedWallet}
-                amount={10000} // Truyền số tiền mặc định của khóa học (sau giảm giá)
-                orderId={orderId}
-              />
-            </div>
-
-            {/* Accordion thông tin hóa đơn */}
-            <InvoiceInfo />
-
-            {/* Badges bảo mật (desktop) */}
-            <div className="hidden sm:flex items-center gap-5 pt-2 border-t border-slate-50">
-              <TrustBadge icon={ShieldCheck} label="Bảo mật SSL 256-bit" />
-              <TrustBadge icon={Star} label="Đánh giá 4.9/5 từ 12.000+ học viên" />
-              <TrustBadge icon={BadgeCheck} label="Chứng chỉ quốc tế" />
-            </div>
+        {loadingCourse ? (
+          <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400 font-bold">
+            <Loader2 size={32} className="animate-spin text-[#F08A4B]" />
+            <span>Đang tải dữ liệu khóa học từ Server...</span>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 items-start">
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+                <PaymentMethodSelector
+                  activeMethod={activeMethod}
+                  setActiveMethod={setActiveMethod}
+                  selectedWallet={selectedWallet}
+                  setSelectedWallet={setSelectedWallet}
+                  amount={courseAmount} // Truyền ĐÚNG số tiền thực tế của khóa học từ DB
+                  orderId={orderId}
+                />
+              </div>
 
-          {/* ── Cột phải: Tóm tắt đơn hàng ── */}
-          <OrderSummary onConfirm={handleConfirm} isProcessing={isProcessing} />
-        </div>
+              <InvoiceInfo />
+
+              <div className="hidden sm:flex items-center gap-5 pt-2 border-t border-slate-50">
+                <TrustBadge icon={ShieldCheck} label="Bảo mật SSL 256-bit" />
+                <TrustBadge icon={Star} label="Đánh giá 4.9/5 từ 12.000+ học viên" />
+                <TrustBadge icon={BadgeCheck} label="Chứng chỉ quốc tế" />
+              </div>
+            </div>
+
+            <OrderSummary 
+              course={course}
+              onConfirm={handleConfirm} 
+              isProcessing={isProcessing} 
+            />
+          </div>
+        )}
       </div>
     </>
   );
