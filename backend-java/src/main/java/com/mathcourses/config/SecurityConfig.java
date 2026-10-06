@@ -52,8 +52,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Cho phép frontend ở port 5173 truy cập (cả localhost và 127.0.0.1)
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
+        // Cho phép frontend ở localhost và tất cả domain Vercel / Render truy cập
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://*.vercel.app",
+            "https://*.onrender.com"
+        ));
         
         // Cho phép tất cả các phương thức HTTP thông thường
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

@@ -10,6 +10,7 @@ import AdminLayout from "../../components/admin/AdminLayout";
 import CourseStudentTable from "../../components/admin/CourseStudentTable";
 import CourseVideoList from "../../components/admin/CourseVideoList";
 import AddVideoModal from "../../components/admin/AddVideoModal";
+import { API_BASE_URL } from "../../config/api";
 
 export default function AdminCourseDetailPage() {
   const { id } = useParams();
@@ -22,7 +23,7 @@ export default function AdminCourseDetailPage() {
 
   useEffect(() => {
     if (id) {
-      fetch(`http://localhost:8085/api/courses/${id}`)
+      fetch(`${API_BASE_URL}/api/courses/${id}`)
         .then((res) => res.json())
         .then((data) => {
           if (data && data.title) {

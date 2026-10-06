@@ -3,6 +3,7 @@ import SidebarFilter from "../../components/course/SidebarFilter";
 import CourseCard from "../../components/course/CourseCard";
 import Pagination from "../../components/common/Pagination";
 import { LayoutGrid, List, SlidersHorizontal, X } from "lucide-react";
+import { API_BASE_URL } from "../../config/api";
 
 export default function CourseListPage() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function CourseListPage() {
 
   useEffect(() => {
     // 1. Tải danh sách khóa học từ Backend
-    fetch("http://localhost:8085/api/courses")
+    fetch(`${API_BASE_URL}/api/courses`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -33,7 +34,7 @@ export default function CourseListPage() {
       if (userStr) {
         const user = JSON.parse(userStr);
         if (user && user.id) {
-          fetch(`http://localhost:8085/api/enrollments/user/${user.id}`)
+          fetch(`${API_BASE_URL}/api/enrollments/user/${user.id}`)
             .then((res) => res.json())
             .then((enrollments) => {
               if (Array.isArray(enrollments)) {

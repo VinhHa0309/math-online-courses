@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, ArrowLeft, Mail, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout, { GoogleIcon, InputField } from "../../components/layout/AuthLayout";
+import { API_BASE_URL } from "../../config/api";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8085/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -4,6 +4,7 @@ import { ArrowLeft, ShieldCheck, Star, BadgeCheck } from "lucide-react";
 import PaymentMethodSelector from "../../components/course/payment/PaymentMethodSelector";
 import OrderSummary from "../../components/course/payment/OrderSummary";
 import InvoiceInfo from "../../components/course/payment/InvoiceInfo";
+import { API_BASE_URL } from "../../config/api";
 
 // ── Modal xác nhận thanh toán thành công ──────────────────
 function SuccessModal({ onClose }) {
@@ -77,7 +78,7 @@ export default function PaymentPage() {
       try {
         // Tự động tạo pending enrollment nếu user đã đăng nhập
         if (user && user.id) {
-          await fetch("http://localhost:8085/api/enrollments", {
+          await fetch(`${API_BASE_URL}/api/enrollments`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, courseId: courseId }),
@@ -92,7 +93,7 @@ export default function PaymentPage() {
     } else if (activeMethod === "wallet" && selectedWallet === "MoMo") {
       setIsProcessing(true);
       try {
-        const response = await fetch("http://localhost:8085/api/payment/momo", {
+        const response = await fetch(`${API_BASE_URL}/api/payment/momo`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -123,7 +124,7 @@ export default function PaymentPage() {
       // Mock hành vi thành công cho phương thức khác (thẻ tín dụng)
       if (user && user.id) {
         try {
-          await fetch("http://localhost:8085/api/enrollments", {
+          await fetch(`${API_BASE_URL}/api/enrollments`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, courseId: courseId }),

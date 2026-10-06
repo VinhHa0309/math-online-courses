@@ -19,6 +19,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/layout/Header";
 import { MOCK_COURSE, MOCK_CHAPTERS, MOCK_LESSON } from "../../data/lessonData";
+import { API_BASE_URL } from "../../config/api";
 
 /* ─────────────────────────────────────────
    SIDEBAR: Danh sách chương & bài học
@@ -302,7 +303,7 @@ export default function LessonPage() {
       if (userStr) {
         const user = JSON.parse(userStr);
         if (user && user.id) {
-          fetch(`http://localhost:8085/api/enrollments/check?userId=${user.id}&courseId=${courseId || 1}`)
+          fetch(`${API_BASE_URL}/api/enrollments/check?userId=${user.id}&courseId=${courseId || 1}`)
             .then((res) => {
               if (!res.ok) return { status: "NOT_ENROLLED" };
               return res.json();

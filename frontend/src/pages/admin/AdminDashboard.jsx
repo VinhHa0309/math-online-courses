@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
+import { API_BASE_URL } from "../../config/api";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
   // Tải danh sách khóa học & yêu cầu duyệt thực tế từ Backend Database
   const fetchApprovals = () => {
     setLoadingApprovals(true);
-    fetch("http://localhost:8085/api/admin/enrollments?status=PENDING")
+    fetch(`${API_BASE_URL}/api/admin/enrollments?status=PENDING`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/courses")
+    fetch(`${API_BASE_URL}/api/courses`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -107,7 +108,7 @@ export default function AdminDashboard() {
   const handleApprove = async (id, studentName, action) => {
     const endpoint = action === "approve" ? "approve" : "reject";
     try {
-      const res = await fetch(`http://localhost:8085/api/admin/enrollments/${id}/${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/enrollments/${id}/${endpoint}`, {
         method: "PATCH",
       });
       if (!res.ok) throw new Error("Không thể xử lý yêu cầu!");
@@ -139,7 +140,7 @@ export default function AdminDashboard() {
         const backendFormData = new FormData();
         backendFormData.append("file", imageFile);
 
-        const uploadRes = await fetch("http://localhost:8085/api/admin/courses/upload-image", {
+        const uploadRes = await fetch(`${API_BASE_URL}/api/admin/courses/upload-image`, {
           method: "POST",
           body: backendFormData,
         }).catch(() => null);
@@ -175,7 +176,7 @@ export default function AdminDashboard() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch("http://localhost:8085/api/admin/courses", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/courses`, {
         method: "POST",
         headers,
         body: JSON.stringify({

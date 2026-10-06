@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { compStats, studentStats } from "../../data/featured";
+import { API_BASE_URL } from "../../config/api";
 
 // Hàm chuẩn hóa Tên khóa học nếu dữ liệu DB bị thô/lỗi font (ví dụ: Lop1 -> Toán Lớp 1, Toan12 -> Toán Lớp 12, hoa 1 -> Hóa Học 1)
 const formatCourseTitle = (rawTitle) => {
@@ -77,7 +78,7 @@ export default function FeaturedSection() {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/courses")
+    fetch(`${API_BASE_URL}/api/courses`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {

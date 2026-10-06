@@ -22,6 +22,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../../config/api";
 
 // Ảnh avatar mặc định tuyệt đẹp nếu user chưa có avatar
 const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400";
@@ -84,7 +85,7 @@ export default function ProfilePage() {
 
         // 2. Tự động gọi API Backend (PostgreSQL) lấy dữ liệu chính xác nhất của người dùng
         if (parsed.id) {
-          fetch(`http://localhost:8085/api/users/${parsed.id}`)
+          fetch(`${API_BASE_URL}/api/users/${parsed.id}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((dbUser) => {
               if (dbUser) {
@@ -145,7 +146,7 @@ export default function ProfilePage() {
     // 1. Nếu có userId, gửi API PUT lên Backend Java
     if (user.id) {
       try {
-        await fetch(`http://localhost:8085/api/users/${user.id}/avatar`, {
+        await fetch(`${API_BASE_URL}/api/users/${user.id}/avatar`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ avatarUrl: updatedAvatar }),
@@ -185,7 +186,7 @@ export default function ProfilePage() {
     // 1. Gửi API lên Backend nếu có id người dùng
     if (user.id) {
       try {
-        await fetch(`http://localhost:8085/api/users/${user.id}/profile`, {
+        await fetch(`${API_BASE_URL}/api/users/${user.id}/profile`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

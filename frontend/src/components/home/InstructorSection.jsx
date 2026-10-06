@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { BookOpen, User as UserIcon, FileText, ShieldCheck } from "lucide-react";
+import { API_BASE_URL } from "../../config/api";
 
 // Danh sách Giảng viên / Admin mặc định fallback
 const DEFAULT_INSTRUCTORS = [
@@ -96,7 +97,7 @@ export default function InstructorSection() {
       console.error("Lỗi đọc user:", e);
     }
 
-    fetch("http://localhost:8085/api/instructors")
+    fetch(`${API_BASE_URL}/api/instructors`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {

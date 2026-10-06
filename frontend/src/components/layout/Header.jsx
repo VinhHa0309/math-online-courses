@@ -2,6 +2,7 @@ import { Search, Bell, Menu, X, LogOut, User, GraduationCap, Target, FileText, N
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import BrandLogo from "../common/BrandLogo";
+import { API_BASE_URL } from "../../config/api";
 
 const NAV_LINKS = [
   { label: "Khoá học", path: "/courses", icon: GraduationCap },
@@ -50,7 +51,7 @@ export default function Header() {
 
   const fetchNotifications = (userId) => {
     if (!userId) return;
-    fetch(`http://localhost:8085/api/notifications/user/${userId}`)
+    fetch(`${API_BASE_URL}/api/notifications/user/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -96,7 +97,7 @@ export default function Header() {
 
   const handleMarkAllRead = () => {
     if (!currentUser || !currentUser.id) return;
-    fetch(`http://localhost:8085/api/notifications/user/${currentUser.id}/read-all`, {
+    fetch(`${API_BASE_URL}/api/notifications/user/${currentUser.id}/read-all`, {
       method: "PATCH",
     })
       .then(() => {
@@ -107,7 +108,7 @@ export default function Header() {
 
   const handleNotificationClick = (notif) => {
     if (!notif.read && !notif.isRead) {
-      fetch(`http://localhost:8085/api/notifications/${notif.id}/read`, { method: "PATCH" })
+      fetch(`${API_BASE_URL}/api/notifications/${notif.id}/read`, { method: "PATCH" })
         .catch(() => null);
       setNotifications((prev) =>
         prev.map((n) => (n.id === notif.id ? { ...n, read: true, isRead: true } : n))
