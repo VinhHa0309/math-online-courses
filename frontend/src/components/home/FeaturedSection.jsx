@@ -76,13 +76,13 @@ function SmallCard({ icon, title, desc, price, onDetail }) {
 export default function FeaturedSection() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/courses`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          // Sắp xếp khóa học theo số lượng học viên đông nhất
+        if (Array.isArray(data)) {
           const sorted = [...data].sort((a, b) => {
             const countA = a.studentCount || a.studentsCount || 0;
             const countB = b.studentCount || b.studentsCount || 0;
@@ -90,9 +90,11 @@ export default function FeaturedSection() {
           });
           setCourses(sorted);
         }
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Lỗi khi tải khóa học nổi bật:", err);
+        setLoading(false);
       });
   }, []);
 
@@ -191,10 +193,16 @@ export default function FeaturedSection() {
               </button>
             </div>
           </div>
-        ) : (
+        ) : loading ? (
           <div className="md:col-span-2 border border-slate-200/60 rounded-3xl h-80 bg-slate-50 animate-pulse flex flex-col items-center justify-center text-slate-400 font-bold text-sm gap-2">
             <BookOpen className="w-8 h-8 text-slate-300 animate-bounce" />
             <span>Đang tải khóa học ...</span>
+          </div>
+        ) : (
+          <div className="md:col-span-2 border border-slate-200/60 rounded-3xl h-80 bg-slate-50 flex flex-col items-center justify-center text-slate-400 font-bold text-sm gap-2 p-6 text-center">
+            <BookOpen className="w-8 h-8 text-slate-400" />
+            <span className="text-[#1A2B47] text-base font-extrabold">Chưa có khóa học nào trong cơ sở dữ liệu</span>
+            <span className="text-slate-400 text-xs font-medium max-w-sm">Bạn hãy đăng nhập tài khoản Admin để bắt đầu tạo các khóa học mới nhé.</span>
           </div>
         )}
 
