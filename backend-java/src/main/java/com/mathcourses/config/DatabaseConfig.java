@@ -2,6 +2,8 @@ package com.mathcourses.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,19 +15,25 @@ import java.net.URI;
 @Configuration
 public class DatabaseConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
+
     @Value("${SPRING_DATASOURCE_URL:${DATABASE_URL:${INTERNAL_DATABASE_URL:}}}")
     private String rawDbUrl;
 
     @Value("${SPRING_DATASOURCE_USERNAME:postgres}")
-    private String username;
+    private String envUsername;
 
     @Value("${SPRING_DATASOURCE_PASSWORD:postgres}")
-    private String password;
+    private String envPassword;
 
     @Bean
     @Primary
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
+        
+        String finalJdbcUrl = "";
+        String finalUsername = envUsername;
+        String finalPassword = envPassword;
 
         if (rawDbUrl != null && (rawDbUrl.startsWith("postgresql://") || rawDbUrl.startsWith("postgres://"))) {
             try {
@@ -34,35 +42,45 @@ public class DatabaseConfig {
                 int port = uri.getPort() == -1 ? 5432 : uri.getPort();
                 String path = uri.getPath();
                 
-                String dbUrl = "jdbc:postgresql://" + host + ":" + port + path;
+                finalJdbcUrl = "jdbc:postgresql://" + host + ":" + port + path;
                 
+                // Trích xuất username/password từ URL nếu biến môi trường chưa đặt
                 if (uri.getUserInfo() != null) {
                     String[] userPass = uri.getUserInfo().split(":");
-                    config.setUsername(userPass[0]);
-                    if (userPass.length > 1) {
-                        config.setPassword(userPass[1]);
+                    if ("postgres".equals(envUsername) && userPass.length > 0) {
+                        finalUsername = userPass[0];
                     }
-                } else {
-                    config.setUsername(username);
-                    config.setPassword(password);
+                    if ("postgres".equals(envPassword) && userPass.length > 1) {
+                        finalPassword = userPass[1];
+                    }
                 }
-                config.setJdbcUrl(dbUrl);
             } catch (Exception e) {
-                config.setJdbcUrl(rawDbUrl);
-                config.setUsername(username);
-                config.setPassword(password);
+                logger.error("Lỗi khi parse rawDbUrl: {}", e.getMessage());
+                finalJdbcUrl = rawDbUrl;
             }
         } else if (rawDbUrl != null && !rawDbUrl.trim().isEmpty()) {
-            config.setJdbcUrl(rawDbUrl);
-            config.setUsername(username);
-            config.setPassword(password);
+            finalJdbcUrl = rawDbUrl;
         } else {
-            config.setJdbcUrl("jdbc:postgresql://localhost:5432/math_courses_db");
-            config.setUsername(username);
-            config.setPassword(password);
+            finalJdbcUrl = "jdbc:postgresql://localhost:5432/math_courses_db";
         }
 
+        // Ưu tiên cao nhất cho SPRING_DATASOURCE_USERNAME / PASSWORD nếu khác mặc định "postgres"
+        if (!"postgres".equals(envUsername)) {
+            finalUsername = envUsername;
+        }
+        if (!"postgres".equals(envPassword)) {
+            finalPassword = envPassword;
+        }
+
+        logger.info("Connecting to Database JDBC URL: {}", finalJdbcUrl);
+        logger.info("Database Username: {}", finalUsername);
+        logger.info("Database Password Length: {}", finalPassword != null ? finalPassword.length() : 0);
+
+        config.setJdbcUrl(finalJdbcUrl);
+        config.setUsername(finalUsername);
+        config.setPassword(finalPassword);
         config.setDriverClassName("org.postgresql.Driver");
+
         return new HikariDataSource(config);
     }
 }
